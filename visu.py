@@ -33,9 +33,9 @@ while True:
     pi = 0
     large = 0
     for i in range(196):
-       pi  += 86
-       for l in range(14):
-           large += 86
-           pygame.draw.line(window, (0, 0, 0), (largee, pi), (large, pi + 10), 3)
-        
+        pi  += 86
+        large = 0
+        for l in range(14):
+            large += 56
+            pygame.draw.line(window, (0, 0, 0), (large, pi), (large, pi + 10), 3)
     pygame.display.flip()

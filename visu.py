@@ -30,11 +30,11 @@ while True:
         cube_pos = size_square * i
         pygame.draw.line(window, (0, 0, 0), (30, 30 + cube_pos), (730 + 30, 30 + cube_pos), 1) # largeur
         pygame.draw.line(window, (0, 0, 0), (30 + cube_pos, 30), (30 + cube_pos, 730 + 30), 1) # longueur
-    y = 56
+    y = 30
     for i in range(196):
         x = 30
         for l in range(14):
             pygame.draw.line(window, (0, 0, 0), (x, y), (x, y + 10), 3)
-            x += 86
-        y += 86
+            x += 56
+        y += 56
     pygame.display.flip()

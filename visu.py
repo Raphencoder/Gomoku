@@ -31,10 +31,13 @@ while True:
         pygame.draw.line(window, (0, 0, 0), (30, 30 + cube_pos), (730 + 30, 30 + cube_pos), 1) # largeur
         pygame.draw.line(window, (0, 0, 0), (30 + cube_pos, 30), (30 + cube_pos, 730 + 30), 1) # longueur
     y = 30
+    inters = []
     for i in range(196):
         x = 30
         for l in range(14):
+            inter = (x, y)
             pygame.draw.line(window, (0, 0, 0), (x, y), (x, y + 10), 3)
             x += 56
         y += 56
+        inters.append(inter)
     pygame.display.flip()

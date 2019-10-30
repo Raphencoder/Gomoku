@@ -67,7 +67,7 @@ class Gomoku():
     
     def check_event(self):
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONUP:
+            if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
                 pos = pygame.mouse.get_pos()
                 x_player, y_player = in_inter(pos, inters)
                 if x_player != 0 and y_player != 0:
@@ -101,9 +101,9 @@ def start_game():
     while True:
         if gomoku.init:
             gomoku.ai_mode = game_intro(gomoku.window)
+            print(gomoku.ai_mode)
             gomoku.init = False
-        if not gomoku.ai_mode or gomoku.current_player == 1:
-            gomoku.check_event()
+        gomoku.check_event()
         gomoku.fill_background()
         gomoku.display_player()
 

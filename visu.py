@@ -8,10 +8,10 @@ fps = pygame.time.Clock()
 score = 0
 image = pygame.image.load("joueur-blanc.png").convert_alpha()
 
-def game_over():
-    os.system('clear')
-    pygame.quit()
-    sys.exit()
+"""
+TODO : 
+    * Ne pas permettre l'ajout de joueur sur le bord de la map
+"""
 
 def in_inter(pos, inters):
     """

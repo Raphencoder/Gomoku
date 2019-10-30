@@ -11,6 +11,7 @@ image = pygame.image.load("joueur-blanc.png").convert_alpha()
 """
 TODO : 
     * Ne pas permettre l'ajout de joueur sur le bord de la map
+    * Rajouter une class qui dis si le joueur peut placer son pion a cet endroit
 """
 
 def in_inter(pos, inters):

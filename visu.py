@@ -1,15 +1,18 @@
 import pygame
 import os
-import sys 
+import sys
+from menu import game_intro
 
+pygame.init()
 window = pygame.display.set_mode((800, 800))
 pygame.display.set_caption("gomoku")
+game_intro(window)
 fps = pygame.time.Clock()
 score = 0
 image = pygame.image.load("joueur-blanc.png").convert_alpha()
 
 """
-TODO : 
+TODO :
     * Ne pas permettre l'ajout de joueur sur le bord de la map
     * Rajouter une class qui dis si le joueur peut placer son pion a cet endroit
 """
@@ -51,7 +54,7 @@ while True:
         cube_pos = size_square * i
         pygame.draw.line(window, (0, 0, 0), (30, 30 + cube_pos), (730 + 30, 30 + cube_pos), 1) # largeur
         pygame.draw.line(window, (0, 0, 0), (30 + cube_pos, 30), (30 + cube_pos, 730 + 30), 1) # longueur
-    
+
     # methode qui permet de recuperer la postition x,y de chaque intersection
     y = 30
     inters = []
@@ -64,7 +67,7 @@ while True:
             inters.append(square_inter)
             x += 52
         y += 52
-    
+
     # Affiche les pions
     for elem in pos_player:
         window.blit(image, (elem[0], elem[1]))

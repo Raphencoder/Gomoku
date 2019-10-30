@@ -64,6 +64,8 @@ while True:
             inters.append(square_inter)
             x += 56
         y += 56
+    
+    # Affiche les pions
     for elem in pos_player:
         window.blit(image, (elem[0], elem[1]))
     pygame.display.flip()

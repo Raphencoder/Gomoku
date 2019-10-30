@@ -3,12 +3,13 @@ import os
 import sys
 from menu import game_intro
 from variables import inters
+import time
 
 
 """
 TODO :
     * Ne pas permettre l'ajout de joueur sur le bord de la map
-    * Rajouter une class qui dis si le joueur peut placer son pion a cet endroit
+    * timer
 """
 
 yellow = (243, 210, 132)
@@ -54,8 +55,6 @@ class Gomoku():
         self.current_player = 1
 
     def can_place(self, x, y):
-        print(self.pos_player)
-        print(((x,) + (y,) + (1,)))
         if ((x,) + (y,) + (1,)) in self.pos_player or ((x,) + (y,) + (2,)) in self.pos_player:
             return False
         # need to add rule of the game if can be place or no
@@ -93,21 +92,19 @@ class Gomoku():
                 self.window.blit(self.img_player_one, (elem[0], elem[1]))
             else:
                 self.window.blit(self.img_player_two, (elem[0], elem[1]))
-
         pygame.display.flip()
 
 
 def start_game():
     gomoku = Gomoku()
-    init = True
+    gomoku.init = True
     while True:
-        if init:
+        if gomoku.init:
             gomoku.ai_mode = game_intro(gomoku.window)
-            init = False
+            gomoku.init = False
         if not gomoku.ai_mode or gomoku.current_player == 1:
             gomoku.check_event()
         gomoku.fill_background()
         gomoku.display_player()
-        
 
 start_game()

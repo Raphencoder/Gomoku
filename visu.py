@@ -44,8 +44,8 @@ while True:
     pygame.draw.rect(window, (0, 0, 0), (30, 30, 730, 730), 2)
     L = 700
     # 14 carrés par colonnes et par lignes
-    nb_square = range(14)
-    size_square = int(L / 14) + 6
+    nb_square = range(15)
+    size_square = int(L / max(nb_square) + 2)
     square = range(size_square)
     for i in nb_square:
         cube_pos = size_square * i
@@ -62,8 +62,8 @@ while True:
             square_inter_end = (x + 30, y + 30)
             square_inter = square_inter_start + square_inter_end
             inters.append(square_inter)
-            x += 56
-        y += 56
+            x += 52
+        y += 52
     
     # Affiche les pions
     for elem in pos_player:

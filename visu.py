@@ -101,7 +101,6 @@ def start_game():
     while True:
         if gomoku.init:
             gomoku.ai_mode = game_intro(gomoku.window)
-            print(gomoku.ai_mode)
             gomoku.init = False
         gomoku.check_event()
         gomoku.fill_background()

@@ -53,18 +53,27 @@ class Gomoku():
         self.pos_player = []
         self.current_player = 1
 
+    def can_place(self, x, y):
+        print(self.pos_player)
+        print(((x,) + (y,) + (1,)))
+        if ((x,) + (y,) + (1,)) in self.pos_player or ((x,) + (y,) + (2,)) in self.pos_player:
+            return False
+        # need to add rule of the game if can be place or no
+        else:
+            if self.current_player == 1:
+                self.current_player = 2
+            else:
+                self.current_player = 1
+            return True
+    
     def check_event(self):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
-                if self.current_player == 1:
-                    self.current_player = 2
-                else:
-                    self.current_player = 1
                 pos = pygame.mouse.get_pos()
                 x_player, y_player = in_inter(pos, inters)
                 if x_player != 0 and y_player != 0:
-                    # can_place(x_player, y_player)
-                    self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
+                    if self.can_place(x_player, y_player):
+                        self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
 
     def fill_background(self):
         self.window.fill(yellow)

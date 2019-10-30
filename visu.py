@@ -2,20 +2,16 @@ import pygame
 import os
 import sys
 from menu import game_intro
+from variables import inters
 
-pygame.init()
-window = pygame.display.set_mode((800, 800))
-pygame.display.set_caption("gomoku")
-game_intro(window)
-fps = pygame.time.Clock()
-score = 0
-image = pygame.image.load("joueur-blanc.png").convert_alpha()
 
 """
 TODO :
     * Ne pas permettre l'ajout de joueur sur le bord de la map
     * Rajouter une class qui dis si le joueur peut placer son pion a cet endroit
 """
+
+yellow = (243, 210, 132)
 
 def in_inter(pos, inters):
     """
@@ -28,34 +24,7 @@ def in_inter(pos, inters):
     return 0, 0
 
 
-pos_player = []
-
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            try:
-                # if in_inter return positions x_player and y_player are the
-                # position where the user wants to put his player
-                x_player, y_player = in_inter(pos, inters)
-                if x_player != 0 and y_player != 0:
-                    pos_player.append(((x_player,) + (y_player,)))
-            except NameError:
-                pass
-    # background
-    window.fill(pygame.Color(243, 210, 132))
-    pygame.draw.rect(window, (0, 0, 0), (30, 30, 730, 730), 2)
-    L = 700
-    # 14 carrés par colonnes et par lignes
-    nb_square = range(15)
-    size_square = int(L / max(nb_square) + 2)
-    square = range(size_square)
-    for i in nb_square:
-        cube_pos = size_square * i
-        pygame.draw.line(window, (0, 0, 0), (30, 30 + cube_pos), (730 + 30, 30 + cube_pos), 1) # largeur
-        pygame.draw.line(window, (0, 0, 0), (30 + cube_pos, 30), (30 + cube_pos, 730 + 30), 1) # longueur
-
-    # methode qui permet de recuperer la postition x,y de chaque intersection
+def get_inter():
     y = 30
     inters = []
     for i in range(14):
@@ -67,8 +36,54 @@ while True:
             inters.append(square_inter)
             x += 52
         y += 52
+    return inters
 
-    # Affiche les pions
-    for elem in pos_player:
-        window.blit(image, (elem[0], elem[1]))
-    pygame.display.flip()
+
+
+
+class Gomoku():
+
+    def __init__(self):
+        pygame.init()
+        self.window = pygame.display.set_mode((800, 800))
+        pygame.display.set_caption("gomoku")
+        self.img_player_one = pygame.image.load("joueur-blanc.png").convert_alpha()
+        self.inters = inters
+        self.pos_player = []
+
+    def check_event(self):
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                x_player, y_player = in_inter(pos, inters)
+                if x_player != 0 and y_player != 0:
+                    self.pos_player.append(((x_player,) + (y_player,)))
+
+    def fill_background(self):
+        self.window.fill(yellow)
+        pygame.draw.rect(self.window, (0, 0, 0), (30, 30, 730, 730), 2)
+        L = 700
+        nb_square = range(15)
+        size_square = int(L / max(nb_square) + 2)
+        square = range(size_square)
+        for i in nb_square:
+            cube_pos = size_square * i
+            pygame.draw.line(self.window, (0, 0, 0), (30, 30 + cube_pos), (730 + 30, 30 + cube_pos), 1) # largeur
+            pygame.draw.line(self.window, (0, 0, 0), (30 + cube_pos, 30), (30 + cube_pos, 730 + 30), 1) # longueur
+
+    def display_player(self):
+        for elem in self.pos_player:
+            self.window.blit(self.img_player_one, (elem[0], elem[1]))
+        pygame.display.flip()
+
+
+def start_game():
+    gomoku = Gomoku()
+    while True:
+        game_intro(gomoku.window)
+        gomoku.check_event()
+        gomoku.fill_background()
+        gomoku.display_player()
+        
+
+start_game()

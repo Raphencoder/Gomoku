@@ -24,8 +24,12 @@ def button(x, y, w, h, msg, window, action=None):
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
         pygame.draw.rect(window, grey,(x,y,w,h))
         #perform button action
-        if click[0] == 1 and action != None:
+        if click[0] == 1 and (action != 1 and action != 0):
             action()
+        elif click[0] == 1 and action == 1:
+            return 1
+        elif click[0] == 1 and action == 0:
+            return 0
     else:
         pygame.draw.rect(window, black,(x,y,w,h), 1)
     #text of button
@@ -52,8 +56,12 @@ def game_intro(window):
         TextRect.center = ((800/2),(800/2))
         window.blit(TextSurf, TextRect)
 
-        button(300,500,200,50, "2 players", window, None)
-        button(300, 600, 200, 50, "player VS AI", window, None)
+        answer = button(300,500,200,50, "2 players", window, 0)
+        if answer == 1 or answer == 0:
+            return answer
+        answer = button(300, 600, 200, 50, "player VS AI", window, 1)
+        if answer == 1 or answer == 0:
+            return answer
         button(300, 700, 200, 50, "Exit", window, quit_game)
         pygame.display.update()
 

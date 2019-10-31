@@ -24,7 +24,7 @@ def in_inter(pos, inters):
             return tup[0] + 10, tup[1] + 10
     return 0, 0
 
-
+"""
 def get_inter():
     y = 30
     inters = []
@@ -38,9 +38,7 @@ def get_inter():
             x += 52
         y += 52
     return inters
-
-
-
+"""
 
 class Gomoku():
 
@@ -52,6 +50,7 @@ class Gomoku():
         self.img_player_two = pygame.image.load("joueur-noir.png").convert_alpha()
         self.inters = inters
         self.pos_player = []
+        self.coordinate = []
         self.current_player = 1
 
     def can_place(self, x, y):
@@ -64,7 +63,7 @@ class Gomoku():
             else:
                 self.current_player = 1
             return True
-    
+
     def check_event(self):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
@@ -73,6 +72,16 @@ class Gomoku():
                 if x_player != 0 and y_player != 0:
                     if self.can_place(x_player, y_player):
                         self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
+                        pos = [int((x_player - 10)/52), int((y_player - 10)/52), -1]
+                        i = self.coordinate.index(pos)
+                        self.coordinate[i][2] = self.current_player
+                        print (self.coordinate[i])
+
+
+            elif event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
 
     def fill_background(self):
         self.window.fill(yellow)
@@ -98,6 +107,9 @@ class Gomoku():
 def start_game():
     gomoku = Gomoku()
     gomoku.init = True
+    for x in range(14):
+        for y in range(14):
+            gomoku.coordinate.append([x, y, -1])
     while True:
         if gomoku.init:
             gomoku.ai_mode = game_intro(gomoku.window)

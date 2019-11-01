@@ -2,7 +2,6 @@ import pygame
 import os
 import sys
 from menu import game_intro
-# from variables import inters
 import time
 
 

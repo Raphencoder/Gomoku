@@ -60,8 +60,8 @@ class Gomoku():
         pygame.init()
         self.window = pygame.display.set_mode((800, 800))
         pygame.display.set_caption("gomoku")
-        self.img_player_one = pygame.image.load("joueur-blanc-petit.png").convert_alpha()
-        self.img_player_two = pygame.image.load("joueur-noir-petit.png").convert_alpha()
+        self.img_player_one = pygame.image.load("./ressources/joueur-blanc-petit.png").convert_alpha()
+        self.img_player_two = pygame.image.load("./ressources/joueur-noir-petit.png").convert_alpha()
         self.pos_player = []
         self.coordinate = []
         self.ai_mode = ai_mode

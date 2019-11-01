@@ -28,9 +28,9 @@ def in_inter(pos, inters):
 def get_inter():
     y = 30
     inters = []
-    for i in range(14):
+    for i in range(15):
         x = 30
-        for l in range(14):
+        for l in range(15):
             square_inter_start = (x - 30, y - 30)
             square_inter_end = (x + 30, y + 30)
             square_inter = square_inter_start + square_inter_end
@@ -89,7 +89,6 @@ class Gomoku():
         L = 700
         nb_square = range(15)
         size_square = int(L / max(nb_square) + 2)
-        square = range(size_square)
         for i in nb_square:
             cube_pos = size_square * i
             pygame.draw.line(self.window, (0, 0, 0), (30, 30 + cube_pos), (730 + 30, 30 + cube_pos), 1) # largeur
@@ -107,8 +106,8 @@ class Gomoku():
 def start_game():
     gomoku = Gomoku()
     gomoku.init = True
-    for x in range(14):
-        for y in range(14):
+    for x in range(15):
+        for y in range(15):
             gomoku.coordinate.append([x, y, -1])
     while True:
         if gomoku.init:

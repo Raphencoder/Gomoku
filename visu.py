@@ -40,18 +40,16 @@ def get_inter(nb_square, gomoku):
             # allow to see the click point
             # pygame.draw.rect(gomoku.window, (0, 0, 0), (x - 10, y - 10, 20, 20), 2) # largeur
             inters.append(square_inter)
-            x += size_square 
-        y += size_square 
+            x += size_square
+        y += size_square
     return inters
 
 def get_coordinate(nb_square):
-    cord = []
+    cord = {}
     for x in range(nb_square + 1):
         for y in range(nb_square + 1):
-            cord.append([x, y, -1])
+            cord[x, y] = -1
     return cord
-
-
 
 class Gomoku():
 
@@ -85,15 +83,52 @@ class Gomoku():
                 if x_player != 0 and y_player != 0:
                     if self.can_place(x_player, y_player):
                         self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
-                        pos = [int((x_player - 10)/38), int((y_player - 10)/38), -1]
-                        i = self.coordinate.index(pos)
-                        self.coordinate[i][2] = self.current_player
-                        print (self.coordinate[i])
+                        pos = (int((x_player - 30)/38), int((y_player - 30)/38))
+                        self.coordinate[pos] = self.current_player
+                        self.check_hor_capture(pos[0], pos[1], 3)
+                        self.check_hor_capture(pos[0], pos[1], -3)
 
 
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
+    def check_hor_capture(self, x, y, i):
+        if x - i < 0 or x - i > 19:  #need to replace 20 by xmax
+            return
+        elif self.coordinate[x - i, y] != self.current_player:
+            return
+        if i > 0:
+            pos1 =  self.coordinate[x - i + 1, y]
+            pos2 = self.coordinate[x - i + 2, y]
+            sup1 = [x - i + 1, y]
+            sup2 = [x - i + 2, y]
+        else:
+            pos1 =  self.coordinate[x - i - 1, y]
+            pos2 = self.coordinate[x - i - 2, y]
+            sup1 = [x - i - 1, y]
+            sup2 = [x - i - 2, y]
+        if pos1 != -1 and pos2 != -1 and pos1 != self.current_player and pos2 != self.current_player:
+            self.capture(sup1, sup2)
+        else:
+            return
+
+    def capture(self, pos1, pos2):
+        """
+        need a few change when class Player will be implemented
+        """
+        newpos1 = [float(i * 38 + 30)  for i in pos1]
+        newpos2 = [float(i * 38 + 30) for i in pos2]
+        if self.current_player == 1:
+            newpos1.append(2)
+            newpos2.append(2)
+        if self.current_player == 2:
+            newpos1.append(1)
+            newpos2.append(1)
+        newpos1 = tuple(newpos1)
+        newpos2 = tuple(newpos2)
+        self.pos_player.remove(newpos1)
+        self.pos_player.remove(newpos2)
 
 
     def fill_background(self, nb_square):
@@ -119,7 +154,7 @@ class Gomoku():
 
 
 def start_game():
-    
+
     pygame.init()
     ai_mode = game_intro(pygame.display.set_mode((800, 800)))
     pygame.quit()

@@ -92,8 +92,22 @@ class Gomoku():
                 pygame.quit()
                 quit()
 
-    def check_hor_capture(self, x, y):
-        points = {}
+    def add_points(self, x, y):
+        """
+        Add points to the corresponding direction
+        """
+        for name in index:
+            if (x, y) in cord[name]:
+                try:
+                    self.points[name] += 1 
+                except KeyError:
+                    self.points[name] = 1
+
+    def map_players(self, x, y):
+        """
+        Map all the neighbourgs of the given position in the 8 differents directions
+        """
+        self.points = {}
         to_add_y = -2
         for e in range(5):
             to_add_x = -2
@@ -108,16 +122,14 @@ class Gomoku():
                     to_add_x += 1                    
                     continue
                 if pos != -1 and pos != self.current_player:
-                    for name in index:
-                        # find which kind of direction that is
-                        if (to_add_x, to_add_y) in cord[name]:
-                            try:
-                                points[name] += 1 
-                            except KeyError:
-                                points[name] = 1
+                    self.add_points(to_add_x, to_add_y)
                 to_add_x += 1
             to_add_y += 1
-        to_capture = [key for key, value in points.items() if value == 2]
+        
+    
+    def check_hor_capture(self, x, y):
+        self.map_players(x, y)
+        to_capture = [key for key, value in self.points.items() if value == 2]
         if to_capture:
             for elem in to_capture:
                 try:
@@ -128,7 +140,6 @@ class Gomoku():
                 sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]
                 if pos != -1 and pos == self.current_player:
                     self.capture(sup1, sup2)
-            return
 
     def capture(self, pos1, pos2):
         """

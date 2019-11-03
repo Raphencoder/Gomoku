@@ -2,7 +2,7 @@ import pygame
 import os
 import sys
 from menu import game_intro
-from variables import cord, index
+from variables import cord, index, free_threes
 import time
 
 
@@ -65,16 +65,27 @@ class Gomoku():
         self.ai_mode = ai_mode
         self.current_player = 1
 
+    def change_player(self):
+        if self.current_player == 1:
+            self.current_player = 2
+        else:
+            self.current_player = 1
+
     def can_place(self, x, y):
         if ((x,) + (y,) + (1,)) in self.pos_player or ((x,) + (y,) + (2,)) in self.pos_player:
             return False
-        # need to add rule of the game if can be place or no
-        else:
-            if self.current_player == 1:
-                self.current_player = 2
-            else:
-                self.current_player = 1
-            return True
+        print(self.ally)
+        print(self.enemy)
+        for key, value in free_threes.items():
+            try:
+                if self.ally[value[0]] == 2 and self.ally[value[2]] == 1 and self.ally[value[1]] == 2:
+                    if value[0] in list(self.enemy.keys()) or value[1] in list(self.enemy.keys()):
+                        return True
+                    self.change_player()
+                    return False
+            except KeyError:
+                pass
+        return True
 
     def check_event(self):
         for event in pygame.event.get():
@@ -82,6 +93,9 @@ class Gomoku():
                 pos = pygame.mouse.get_pos()
                 x_player, y_player = in_inter(pos, self.inters)
                 if x_player != 0 and y_player != 0:
+                    pos = (int((x_player - 30)/38), int((y_player - 30)/38))
+                    self.change_player()
+                    self.map_players(pos[0], pos[1])
                     if self.can_place(x_player, y_player):
                         self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
                         pos = (int((x_player - 30)/38), int((y_player - 30)/38))
@@ -92,26 +106,37 @@ class Gomoku():
                 pygame.quit()
                 quit()
 
-    def add_points(self, x, y):
+    def add_enemy(self, x, y):
         """
         Add points to the corresponding direction
         """
         for name in index:
             if (x, y) in cord[name]:
                 try:
-                    self.points[name] += 1 
+                    self.enemy[name] += 1 
                 except KeyError:
-                    self.points[name] = 1
+                    self.enemy[name] = 1
+    
+    def add_ally(self, x, y):
+        for name in index:
+            if (x, y) in cord[name]:
+                try:
+                    self.ally[name] += 1 
+                except KeyError:
+                    self.ally[name] = 1
+
 
     def map_players(self, x, y):
         """
         Map all the neighbourgs of the given position in the 8 differents directions
         """
-        self.points = {}
-        to_add_y = -2
-        for e in range(5):
-            to_add_x = -2
-            for i in range(5):
+        self.enemy = {}
+        self.ally = {}
+        to_add_y = -3
+        for e in range(7):
+            to_add_x = -3
+            for i in range(7):
+                print(to_add_x, to_add_y)
                 if (abs(to_add_x) == 1 and abs(to_add_y) == 2) or (abs(to_add_x) == 2 and abs(to_add_y) == 1):
                     """
                     only this coordonates
@@ -131,15 +156,15 @@ class Gomoku():
                     to_add_x += 1                    
                     continue
                 if pos != -1 and pos != self.current_player:
-                    self.add_points(to_add_x, to_add_y)
+                    self.add_enemy(to_add_x, to_add_y)
+                elif pos != -1 and pos == self.current_player:
+                    self.add_ally(to_add_x, to_add_y)
                 to_add_x += 1
             to_add_y += 1
-        print(self.points)
     
     def check_hor_capture(self, x, y):
-        self.map_players(x, y)
         # Take the values where they were 2 enemys on the row
-        to_capture = [key for key, value in self.points.items() if value == 2]
+        to_capture = [key for key, value in self.enemy.items() if value == 2]
         if to_capture:
             for elem in to_capture:
                 try:

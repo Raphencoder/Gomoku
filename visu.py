@@ -113,12 +113,21 @@ class Gomoku():
             to_add_x = -2
             for i in range(5):
                 if (abs(to_add_x) == 1 and abs(to_add_y) == 2) or (abs(to_add_x) == 2 and abs(to_add_y) == 1):
+                    """
+                    only this coordonates
+                    o    o   o
+                       o o o
+                    o  o x o o
+                       o o o 
+                    o    o   o
+
+                    """
                     to_add_x += 1
-                    # only the eigth directions
                     continue
                 try:
                     pos = self.coordinate[x + to_add_x, y + to_add_y]
                 except KeyError:
+                    # Outside the map
                     to_add_x += 1                    
                     continue
                 if pos != -1 and pos != self.current_player:
@@ -129,12 +138,15 @@ class Gomoku():
     
     def check_hor_capture(self, x, y):
         self.map_players(x, y)
+        # Take the values where they were 2 enemys on the row
         to_capture = [key for key, value in self.points.items() if value == 2]
         if to_capture:
             for elem in to_capture:
                 try:
+                    # Take the position of the x - 3 player 
                     pos = self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]
                 except KeyError:
+                    # Outside the map
                     continue
                 sup1 = [x + cord[elem][0][0], y + cord[elem][0][1]]
                 sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]

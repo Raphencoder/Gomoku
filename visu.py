@@ -134,7 +134,7 @@ class Gomoku():
                     self.add_points(to_add_x, to_add_y)
                 to_add_x += 1
             to_add_y += 1
-        
+        print(self.points)
     
     def check_hor_capture(self, x, y):
         self.map_players(x, y)
@@ -168,7 +168,11 @@ class Gomoku():
         newpos1 = tuple(newpos1)
         newpos2 = tuple(newpos2)
         self.pos_player.remove(newpos1)
+        pos1 = tuple(pos1)
+        self.coordinate[pos1] = -1
         self.pos_player.remove(newpos2)
+        pos2 = tuple(pos2)
+        self.coordinate[pos2] = -1
 
 
     def fill_background(self, nb_square):

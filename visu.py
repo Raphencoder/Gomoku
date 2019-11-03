@@ -104,7 +104,11 @@ class Gomoku():
                     to_add_x += 1
                     # only the eigth directions
                     continue
-                pos = self.coordinate[x + to_add_x, y + to_add_y]
+                try:
+                    pos = self.coordinate[x + to_add_x, y + to_add_y]
+                except KeyError:
+                    to_add_x += 1                    
+                    continue
                 if pos != -1 and pos != self.current_player:
                     for name in index:
                         # find which kind of direction that is
@@ -118,7 +122,10 @@ class Gomoku():
         to_capture = [key for key, value in points.items() if value == 2]
         if to_capture:
             for elem in to_capture:
-                pos = self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]
+                try:
+                    pos = self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]
+                except KeyError:
+                    continue
                 sup1 = [x + cord[elem][0][0], y + cord[elem][0][1]]
                 sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]
                 if pos != -1 and pos == self.current_player:

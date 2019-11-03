@@ -2,6 +2,7 @@ import pygame
 import os
 import sys
 from menu import game_intro
+from variables import cord, index
 import time
 
 
@@ -85,36 +86,15 @@ class Gomoku():
                         self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
                         pos = (int((x_player - 30)/38), int((y_player - 30)/38))
                         self.coordinate[pos] = self.current_player
-                        self.check_hor_capture(pos[0], pos[1], 3)
-                        # self.check_hor_capture(pos[0], pos[1], -3)
+                        self.check_hor_capture(pos[0], pos[1])
             
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
 
-    def check_hor_capture(self, x, y, i):
-        # if x - i < 0 or x - i > 19:  #need to replace 20 by xmax
+    def check_hor_capture(self, x, y):
+        # if x - i < 0 or x - i > 19:  #need to replace 20 by xmax and to check exception
         #     return
-        # elif self.coordinate[x - i, y] != self.current_player:
-        #     return
-        vert_min = [(0, 1), (0, 2)]
-        vert_max = [(0, -1), (0, -2)]
-        hor_min = [(0, 1), (0, 2)]
-        hor_max = [(0, -1), (0, -2)]
-        diag_min = [(1, 1), (2, 2)]
-        diag_max = [(-1, -1), (-2, -2)]
-        other_diag_min = [(-1, 1), (-2, 2)]
-        other_diag_max = [(1, -1), (2, -2)]
-        cord = {}
-        index = ["vert_min", "vert_max", "hor_min", "hor_max", "diag_min", "diag_max", "other_diag_min", "other_diag_max"]
-        cord["vert_min"] = vert_min
-        cord["vert_max"] = vert_max
-        cord["hor_min"] = hor_min
-        cord["hor_max"] = hor_max
-        cord["diag_min"] = diag_min
-        cord["diag_max"] = diag_max
-        cord["other_diag_min"] = other_diag_min
-        cord["other_diag_max"] = other_diag_max
         points = {}
         to_add_y = -2
         for e in range(5):
@@ -122,13 +102,12 @@ class Gomoku():
             for i in range(5):
                 if (abs(to_add_x) == 1 and abs(to_add_y) == 2) or (abs(to_add_x) == 2 and abs(to_add_y) == 1):
                     to_add_x += 1
+                    # only the eigth directions
                     continue
-                des_x = float((x + to_add_x) * 38 + 30)
-                des_y = float((y + to_add_y) * 38 + 30)
-                pygame.draw.rect(self.window, (0, 0, 0), (des_x - 10, des_y - 10, 20, 20), 2) # largeur
                 pos = self.coordinate[x + to_add_x, y + to_add_y]
                 if pos != -1 and pos != self.current_player:
                     for name in index:
+                        # find which kind of direction that is
                         if (to_add_x, to_add_y) in cord[name]:
                             try:
                                 points[name] += 1 
@@ -136,21 +115,14 @@ class Gomoku():
                                 points[name] = 1
                 to_add_x += 1
             to_add_y += 1
-        pygame.display.flip()
-        print(points)
-        if i > 0:
-            pos1 =  self.coordinate[x - i + 1, y]
-            pos2 = self.coordinate[x - i + 2, y]
-            sup1 = [x - i + 1, y]
-            sup2 = [x - i + 2, y]
-        else:
-            pos1 =  self.coordinate[x - i - 1, y]
-            pos2 = self.coordinate[x - i - 2, y]
-            sup1 = [x - i - 1, y]
-            sup2 = [x - i - 2, y]
-        if pos1 != -1 and pos2 != -1 and pos1 != self.current_player and pos2 != self.current_player:
-            self.capture(sup1, sup2)
-        else:
+        to_capture = [key for key, value in points.items() if value == 2]
+        if to_capture:
+            for elem in to_capture:
+                pos = self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]
+                sup1 = [x + cord[elem][0][0], y + cord[elem][0][1]]
+                sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]
+                if pos != -1 and pos == self.current_player:
+                    self.capture(sup1, sup2)
             return
 
     def capture(self, pos1, pos2):

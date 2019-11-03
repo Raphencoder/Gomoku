@@ -93,8 +93,6 @@ class Gomoku():
                 quit()
 
     def check_hor_capture(self, x, y):
-        # if x - i < 0 or x - i > 19:  #need to replace 20 by xmax and to check exception
-        #     return
         points = {}
         to_add_y = -2
         for e in range(5):

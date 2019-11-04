@@ -3,7 +3,7 @@ import os
 import sys
 from menu import game_intro, text_objects
 from random import *
-from variables import cord, index, free_threes, arrow_free_threes
+from variables import cord, index, free_threes
 import time
 
 
@@ -78,27 +78,20 @@ class Gomoku():
             return False
         print(self.ally)
         print(self.enemy)
-        print(free_threes)
         for key, value in free_threes.items():
             try:
-                if self.ally[value[0]] >= 2 and self.ally[value[2]] == 1 and self.ally[value[1]] >= 2:
-                    if value[0] in list(self.enemy.keys()) or value[1] in list(self.enemy.keys()) or value[2] in list(self.enemy.keys()):
-                        return True
-                    self.change_player()
-                    return False
-            except KeyError:
-                pass
-        for key, value in arrow_free_threes.items():
-            try:
                 if self.ally[value[0]] >= 2 and self.ally[value[1]] >= 2:
-                    if value[0] in list(self.enemy.keys()) or value[1] in list(self.enemy.keys()):
+                    if value[0] in list(self.enemy.keys()) or \
+                        value[1] in list(self.enemy.keys()) or \
+                        value[2] in list(self.enemy.keys()) or \
+                        value[3] in list(self.enemy.keys()):
                         return True
                     self.change_player()
                     return False
             except KeyError:
                 pass
         return True
-    def check_event(self):
+    def check_event(self, j1, j2):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
                 pos = pygame.mouse.get_pos()

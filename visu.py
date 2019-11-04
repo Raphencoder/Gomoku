@@ -79,7 +79,7 @@ class Gomoku():
         print(free_threes)
         for key, value in free_threes.items():
             try:
-                if self.ally[value[0]] == 2 and self.ally[value[2]] == 1 and self.ally[value[1]] == 2:
+                if self.ally[value[0]] >= 2 and self.ally[value[2]] == 1 and self.ally[value[1]] >= 2:
                     if value[0] in list(self.enemy.keys()) or value[1] in list(self.enemy.keys()) or value[2] in list(self.enemy.keys()):
                         return True
                     self.change_player()

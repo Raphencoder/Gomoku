@@ -1,7 +1,8 @@
 import pygame
 import os
 import sys
-from menu import game_intro
+from menu import game_intro, text_objects
+from random import *
 from variables import cord, index, free_threes, arrow_free_threes
 import time
 
@@ -54,7 +55,7 @@ def get_coordinate(nb_square):
 
 class Gomoku():
 
-    def __init__(self, ai_mode):
+    def __init__(self, ai_mode, j1, j2):
         pygame.init()
         self.window = pygame.display.set_mode((800, 800))
         pygame.display.set_caption("gomoku")
@@ -64,6 +65,7 @@ class Gomoku():
         self.coordinate = []
         self.ai_mode = ai_mode
         self.current_player = 1
+        self.time_clock = pygame.time.Clock()
 
     def change_player(self):
         if self.current_player == 1:
@@ -110,7 +112,7 @@ class Gomoku():
                         pos = (int((x_player - 30)/38), int((y_player - 30)/38))
                         self.coordinate[pos] = self.current_player
                         self.check_hor_capture(pos[0], pos[1])
-            
+                        self.time_clock.tick()
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -231,6 +233,12 @@ class Gomoku():
             cube_pos = (size_square * i)
             pygame.draw.line(self.window, (0, 0, 0), (30, 30 + cube_pos), (size + 30, 30 + cube_pos), 1) # largeur
             pygame.draw.line(self.window, (0, 0, 0), (30 + cube_pos, 30), (30 + cube_pos, size + 30), 1) # longueur
+        #timer display
+        pygame.draw.rect(self.window, (0,0,0),(650,760,150,50), 1)
+        smallText = pygame.font.Font("freesansbold.ttf",12)
+        textSurf, textRect = text_objects(str(self.time_clock.get_rawtime()/1000) + " seconds", smallText)
+        textRect.center = ((650+(150/2)), (750+(50/2)))
+        self.window.blit(textSurf, textRect)
 
     def display_player(self):
         for elem in self.pos_player:
@@ -240,6 +248,13 @@ class Gomoku():
                 self.window.blit(self.img_player_two, (elem[0] - 12, elem[1] - 12))
         pygame.display.flip()
 
+class Player():
+
+    def __init__(self, id_player, ai=False):
+        self.ai = ai
+        self.capture = 0
+        self.alignement = 0
+        self.id_player = id_player
 
 
 def start_game():
@@ -248,15 +263,19 @@ def start_game():
     ai_mode = game_intro(pygame.display.set_mode((800, 800)))
     pygame.quit()
     nb_square = 19
-    gomoku = Gomoku(ai_mode)
+    if not ai_mode:
+        j1 = Player(1)
+        j2 = Player(2)
+    else:
+        j1 = Player(1, True) #randomize later with randint
+        j2 = Player(2)
+    gomoku = Gomoku(ai_mode, j1, j2)
 
     gomoku.coordinate = get_coordinate(nb_square)
     gomoku.inters = get_inter(nb_square, gomoku)
     while True:
-        gomoku.check_event()
+        gomoku.check_event(j1,j2)
         gomoku.display_player()
         gomoku.fill_background(nb_square)
-
-
 
 start_game()

@@ -2,7 +2,7 @@ import pygame
 import os
 import sys
 from menu import game_intro
-from variables import cord, index, free_threes
+from variables import cord, index, free_threes, arrow_free_threes
 import time
 
 
@@ -76,9 +76,19 @@ class Gomoku():
             return False
         print(self.ally)
         print(self.enemy)
+        print(free_threes)
         for key, value in free_threes.items():
             try:
                 if self.ally[value[0]] == 2 and self.ally[value[2]] == 1 and self.ally[value[1]] == 2:
+                    if value[0] in list(self.enemy.keys()) or value[1] in list(self.enemy.keys()) or value[2] in list(self.enemy.keys()):
+                        return True
+                    self.change_player()
+                    return False
+            except KeyError:
+                pass
+        for key, value in arrow_free_threes.items():
+            try:
+                if self.ally[value[0]] >= 2 and self.ally[value[1]] >= 2:
                     if value[0] in list(self.enemy.keys()) or value[1] in list(self.enemy.keys()):
                         return True
                     self.change_player()
@@ -86,7 +96,6 @@ class Gomoku():
             except KeyError:
                 pass
         return True
-
     def check_event(self):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
@@ -132,10 +141,10 @@ class Gomoku():
         """
         self.enemy = {}
         self.ally = {}
-        to_add_y = -3
-        for e in range(7):
-            to_add_x = -3
-            for i in range(7):
+        to_add_y = -4
+        for e in range(9):
+            to_add_x = -4
+            for i in range(9):
                 print(to_add_x, to_add_y)
                 if (abs(to_add_x) == 1 and abs(to_add_y) == 2) or (abs(to_add_x) == 2 and abs(to_add_y) == 1):
                     """
@@ -169,9 +178,20 @@ class Gomoku():
             for elem in to_capture:
                 try:
                     # Take the position of the x - 3 player 
+                    print("=-=-=-=-=- DEBUG =-=-=-=-=-=-=-")
+                    print("elem", elem)
+                    print("cord", cord)
+                    print("x", x)
+                    print("y", y)
+
+                    print("cord[elem][2][0]", cord[elem][2][0])
+                    print("x + cord[elem][2][0]", x + cord[elem][2][0])
+                    print("y + cord[elem][2][1]", y + cord[elem][2][1])
+                    print("self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]", self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]])
+                    print("=-=-=-=-=-=- END DEBUG =-=-=-=-=")
                     pos = self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]
-                except KeyError:
-                    # Outside the map
+                except (KeyError, IndexError):
+                    # Outside the map or on free threes
                     continue
                 sup1 = [x + cord[elem][0][0], y + cord[elem][0][1]]
                 sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]

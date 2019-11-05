@@ -181,3 +181,12 @@ free_threes["down_mi"] = [
                             "three_diag_right_up",
                             "three_vert_up"
                         ]
+new_rules = {}
+
+new_rules["vert_up"] = [
+                "diag_right_up",
+                "hor_right",
+                "diag_right_down",
+                "diag_left_down",
+                "diag_left_up",
+]

@@ -3,7 +3,7 @@ import os
 import sys
 from menu import game_intro, text_objects
 from random import *
-from variables import cord, index, free_threes, new_rules
+from variables import cord, index, new_rules
 import time
 
 
@@ -93,20 +93,23 @@ class Gomoku():
         # return True
         for key, value in new_rules.items():
             try:
+                print("in")
+                print(self.ally[key])
+                print(key)
                 if self.ally[key] >= 2: 
                     for pos in value:
-                        print(self.ally[pos])
-                        print("three_"+key+"")
-                        print(self.enemy.items())
                         try:
                             if self.ally[pos] >= 2 and ("three_"+pos+"" in list(self.enemy.keys()) or "three_"+key+"" in list(self.enemy.keys())):
                                 print("return True")
                                 return True
-                            self.change_player()
-                            return False
+                            elif self.ally[pos] >= 2:
+                                self.change_player()
+                                print("return False")
+                                return False
                         except KeyError:
                             pass
             except KeyError:
+                print("out")
                 pass
         return True
     def check_event(self, j1, j2):

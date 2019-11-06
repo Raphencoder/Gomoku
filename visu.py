@@ -80,9 +80,6 @@ class Gomoku():
         print(self.enemy)
         for key, value in new_rules.items():
             try:
-                print("in")
-                print(self.ally[key])
-                print(key)
                 if self.ally[key] >= 2: 
                     for pos in value:
                         try:
@@ -96,7 +93,6 @@ class Gomoku():
                         except KeyError:
                             pass
             except KeyError:
-                print("out")
                 pass
         return True
     def check_event(self, j1, j2):

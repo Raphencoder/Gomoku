@@ -54,130 +54,69 @@ cord["three_diag_left_down"] = three_diag_left_down
 cord["diag_right_up"] = diag_right_up
 cord["three_diag_right_up"] = three_diag_right_up
 
-free_threes = {}
+new_rules = {}
 
-free_threes["up"] = [
-                    "diag_right_down",
-                    "hor_left",
-                    "three_diag_right_down",
-                    "three_hor_left"
-                    ]
-free_threes["down"] = [
-                    "diag_left_up",
-                    "hor_right",
-                    "three_diag_left_up",
-                    "three_hor_right",
-                    ]
-free_threes["left"] = [
-                    "diag_right_up",
-                    "vert_down",
-                    "three_diag_right_up",
-                    "three_vert_down"
-                    ]
-free_threes["right"] = [
-                            "diag_left_down", 
-                            "vert_up", 
-                            "three_diag_left_down",
-                            "three_vert_up" 
-                            ]
-
-
-free_threes["up-square"] = [
-                            "diag_left_down",
-                            "diag_right_down",
-                            "three_diag_right_down",
-                            "three_diag_left_down"
-                        ]
-free_threes["down-square"] = [
-                            "diag_left_up",
-                            "diag_right_up",
-                            "three_diag_right_up",
-                            "three_diag_left_up"
-                        ]
-free_threes["left-square"] = [
-                            "diag_right_down",
-                            "diag_right_up",
-                            "three_diag_right_up",
-                            "three_diag_right_down"
-                        ]
-free_threes["right-square"] = [
-                            "diag_left_up",
-                            "diag_left_down",
-                            "three_diag_left_down",
-                            "three_diag_left_up"
-                        ]
-free_threes["up_square"] = [
-                            "hor_left",
-                            "vert_down",
-                            "three_vert_down",
-                            "three_hor_left"
-                        ]
-free_threes["down_square"] = [
-                            "hor_right",
-                            "vert_up",
-                            "three_vert_up",
-                            "three_hor_right"
-                        ]
-free_threes["left_square"] = [
-                            "vert_down",
-                            "hor_right",
-                            "three_hot_right",
-                            "three_vert_down"
-                        ]
-free_threes["right_square"] = [
-                            "vert_up",
-                            "hor_left",
-                            "three_hor_left",
-                            "three_vert_up"
-                        ]
-
-free_threes["up_mi_square"] = [
-                            "hor_left",
-                            "diag_right_down",
-                            "three_diag_right_down",
-                            "three_hor_left"
-                        ]
-free_threes["down_mi_square"] = [
-                            "hor_right",
-                            "diag_left_up",
-                            "three_diag_left_up",
-                            "three_hor_right"
-                        ]
-free_threes["left_mi_square"] = [
-                            "vert_down",
-                            "diag_right_down",
-                            "three_diag_right_down",
-                            "three_vert_down"
-                        ]
-free_threes["right_mi_square"] = [
-                            "vert_up",
-                            "diag_left_up",
-                            "three_diag_left_up",
-                            "three_vert_up"
-                        ]
-
-free_threes["up_mi"] = [
-                            "vert_down",
-                            "diag_right_down",
-                            "three_diag_right_down",
-                            "three_vert_down"
-                        ]
-
-free_threes["left_mi"] = [
-                            "hor_right",
-                            "diag_right_up",
-                            "three_diag_right_up",
-                            "three_hor_right"
-                        ]
-free_threes["right_mi"] = [
-                            "hor_left",
-                            "diag_left_up",
-                            "three_diag_left_up",
-                            "three_hor_left"
-                        ]
-free_threes["down_mi"] = [
-                            "vert_up",
-                            "diag_right_up",
-                            "three_diag_right_up",
-                            "three_vert_up"
-                        ]
+new_rules["vert_up"] = [
+                "diag_right_up",
+                "hor_right",
+                "diag_right_down",
+                "diag_left_down",
+                "hor_left"
+                "diag_left_up"
+]
+new_rules["diag_right_up"] = [
+                "vert_up",
+                "hor_right",
+                "diag_right_down",
+                "vert_down",
+                "hor_left"
+                "diag_left_up"
+]
+new_rules["hor_right"] = [
+                "vert_up",
+                "diag_right_up",
+                "diag_right_down",
+                "vert_down",
+                "diag_left_down",
+                "diag_left_up"
+]
+new_rules["diag_right_down"] = [
+                "vert_up",
+                "diag_right_up",
+                "hor_right",
+                "vert_down",
+                "diag_left_down",
+                "hor_left"
+]
+new_rules["vert_down"] = [
+                "diag_right_up",
+                "hor_right",
+                "diag_right_down",
+                "diag_left_down",
+                "hor_left",
+                "diag_left_up"
+]
+new_rules["diag_left_down"] = [
+                "vert_up"
+                "hor_right",
+                "diag_right_down",
+                "vert_down"    
+                "hor_left",
+                "diag_left_up"
+]
+new_rules["hor_left"] = [
+                "vert_up"
+                "diag_right_up",
+                "diag_right_down",
+                "vert_down"    
+                "diag_left_down",
+                "diag_left_up"
+]
+new_rules["diag_left_up"] = [
+                "vert_up"
+                "diag_right_up",
+                "hor_right"
+                "vert_down"    
+                "diag_left_down",
+                "hor_left"
+]

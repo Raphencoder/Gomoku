@@ -78,19 +78,6 @@ class Gomoku():
             return False
         print(self.ally)
         print(self.enemy)
-        # for key, value in free_threes.items():
-        #     try:
-        #         if self.ally[value[0]] >= 2 and self.ally[value[1]] >= 2:
-        #             if value[0] in list(self.enemy.keys()) or \
-        #                 value[1] in list(self.enemy.keys()) or \
-        #                 value[2] in list(self.enemy.keys()) or \
-        #                 value[3] in list(self.enemy.keys()):
-        #                 return True
-        #             self.change_player()
-        #             return False
-        #     except KeyError:
-        #         pass
-        # return True
         for key, value in new_rules.items():
             try:
                 print("in")

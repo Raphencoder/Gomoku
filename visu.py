@@ -78,6 +78,7 @@ class Gomoku():
             return False
         print(self.ally)
         print(self.enemy)
+        print(self.outside)
         for key, value in new_rules.items():
             try:
                 if self.ally[key] >= 2: 
@@ -86,7 +87,7 @@ class Gomoku():
                             if self.ally[pos] >= 2 and ("three_"+pos+"" in list(self.enemy.keys()) or "three_"+key+"" in list(self.enemy.keys())):
                                 print("return True")
                                 return True
-                            elif self.ally[pos] >= 2:
+                            elif self.ally[pos] >= 2 and ("three_"+pos+"" not in list(self.outside.keys()) and "three_"+key+"" not in list(self.outside.keys())):
                                 self.change_player()
                                 print("return False")
                                 return False
@@ -133,6 +134,13 @@ class Gomoku():
                 except KeyError:
                     self.ally[name] = 1
 
+    def add_outside(self, x, y):
+        for name in index:
+            if (x, y) in cord[name]:
+                try:
+                    self.outside[name] += 1 
+                except KeyError:
+                    self.outside[name] = 1
 
     def map_players(self, x, y):
         """
@@ -140,6 +148,7 @@ class Gomoku():
         """
         self.enemy = {}
         self.ally = {}
+        self.outside = {}
         to_add_y = -4
         for e in range(9):
             to_add_x = -4
@@ -160,7 +169,7 @@ class Gomoku():
                 try:
                     pos = self.coordinate[x + to_add_x, y + to_add_y]
                 except KeyError:
-                    # Outside the map
+                    self.add_outside(to_add_x, to_add_y)
                     to_add_x += 1                    
                     continue
                 if pos != -1 and pos != self.current_player:
@@ -176,18 +185,6 @@ class Gomoku():
         if to_capture:
             for elem in to_capture:
                 try:
-                    # Take the position of the x - 3 player 
-                    print("=-=-=-=-=- DEBUG =-=-=-=-=-=-=-")
-                    print("elem", elem)
-                    print("cord", cord)
-                    print("x", x)
-                    print("y", y)
-
-                    print("cord[elem][2][0]", cord[elem][2][0])
-                    print("x + cord[elem][2][0]", x + cord[elem][2][0])
-                    print("y + cord[elem][2][1]", y + cord[elem][2][1])
-                    print("self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]", self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]])
-                    print("=-=-=-=-=-=- END DEBUG =-=-=-=-=")
                     pos = self.coordinate[x + cord[elem][2][0], y + cord[elem][2][1]]
                 except (KeyError, IndexError):
                     # Outside the map or on free threes

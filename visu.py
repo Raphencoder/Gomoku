@@ -1,7 +1,7 @@
 import pygame
 import os
 import sys
-from menu import game_intro, text_objects
+from menu import game_intro, text_objects, button
 from random import *
 from variables import cord, index, new_rules
 import time
@@ -14,6 +14,8 @@ TODO :
 """
 
 yellow = (243, 210, 132)
+
+#notcur_p = lambda x, y , z : y if x == y else z
 
 def in_inter(pos, inters):
     """
@@ -55,7 +57,7 @@ def get_coordinate(nb_square):
 
 class Gomoku():
 
-    def __init__(self, ai_mode, j1, j2):
+    def __init__(self, ai_mode):
         pygame.init()
         self.window = pygame.display.set_mode((800, 800))
         pygame.display.set_caption("gomoku")
@@ -66,6 +68,10 @@ class Gomoku():
         self.ai_mode = ai_mode
         self.current_player = 1
         self.time_clock = pygame.time.Clock()
+        if ai_mode:
+            self.j1, self.j2 = Player(1, True), Player(2)
+        else:
+            self.j1, self.j2 = Player(1), Player(2)
 
     def change_player(self):
         if self.current_player == 1:
@@ -81,7 +87,7 @@ class Gomoku():
         print(self.outside)
         for key, value in new_rules.items():
             try:
-                if self.ally[key] >= 2: 
+                if self.ally[key] >= 2:
                     for pos in value:
                         try:
                             if self.ally[pos] >= 2 and ("three_"+pos+"" in list(self.enemy.keys()) or "three_"+key+"" in list(self.enemy.keys())):
@@ -96,7 +102,7 @@ class Gomoku():
             except KeyError:
                 pass
         return True
-    def check_event(self, j1, j2):
+    def check_event(self):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
                 pos = pygame.mouse.get_pos()
@@ -122,15 +128,15 @@ class Gomoku():
         for name in index:
             if (x, y) in cord[name]:
                 try:
-                    self.enemy[name] += 1 
+                    self.enemy[name] += 1
                 except KeyError:
                     self.enemy[name] = 1
-    
+
     def add_ally(self, x, y):
         for name in index:
             if (x, y) in cord[name]:
                 try:
-                    self.ally[name] += 1 
+                    self.ally[name] += 1
                 except KeyError:
                     self.ally[name] = 1
 
@@ -138,7 +144,7 @@ class Gomoku():
         for name in index:
             if (x, y) in cord[name]:
                 try:
-                    self.outside[name] += 1 
+                    self.outside[name] += 1
                 except KeyError:
                     self.outside[name] = 1
 
@@ -160,7 +166,7 @@ class Gomoku():
                     o    o   o
                        o o o
                     o  o x o o
-                       o o o 
+                       o o o
                     o    o   o
 
                     """
@@ -170,7 +176,7 @@ class Gomoku():
                     pos = self.coordinate[x + to_add_x, y + to_add_y]
                 except KeyError:
                     self.add_outside(to_add_x, to_add_y)
-                    to_add_x += 1                    
+                    to_add_x += 1
                     continue
                 if pos != -1 and pos != self.current_player:
                     self.add_enemy(to_add_x, to_add_y)
@@ -178,7 +184,7 @@ class Gomoku():
                     self.add_ally(to_add_x, to_add_y)
                 to_add_x += 1
             to_add_y += 1
-    
+
     def check_hor_capture(self, x, y):
         # Take the values where they were 2 enemys on the row
         to_capture = [key for key, value in self.enemy.items() if value == 2]
@@ -216,6 +222,31 @@ class Gomoku():
         self.coordinate[pos2] = -1
 
 
+    def erase(self):
+        "undo function, TODO restore captured piece"
+        if self.ai_mode:
+            try:
+                r = self.pos_player.pop()
+                r1 = self.pos_player.pop()
+                self.coordinate[(int((r1[0] - 30)/38), int((r1[1] - 30)/38))] = -1
+
+                self.coordinate[(int((r[0] - 30)/38), int((r[0] - 30)/38))] = -1
+                time.sleep(0.2)
+            except IndexError:
+                pass
+        else:
+            try:
+                r = self.pos_player.pop()
+                self.coordinate[(int((r[0] - 30)/38), int((r[1] - 30)/38))] = -1
+                if self.current_player == 1:
+                    self.current_player = 2
+                else:
+                    self.current_player = 1
+                time.sleep(0.2)
+            except IndexError:
+                pass
+
+
     def fill_background(self, nb_square):
         self.window.fill(yellow)
         size = 700 + nb_square
@@ -233,6 +264,7 @@ class Gomoku():
         textSurf, textRect = text_objects(str(self.time_clock.get_rawtime()/1000) + " seconds", smallText)
         textRect.center = ((650+(150/2)), (750+(50/2)))
         self.window.blit(textSurf, textRect)
+        button(0, 760, 150, 50, "undo", self.window, self.erase)
 
     def display_player(self):
         for elem in self.pos_player:
@@ -247,6 +279,7 @@ class Player():
     def __init__(self, id_player, ai=False):
         self.ai = ai
         self.capture = 0
+        self.captured = {}
         self.alignement = 0
         self.id_player = id_player
 
@@ -263,12 +296,12 @@ def start_game():
     else:
         j1 = Player(1, True) #randomize later with randint
         j2 = Player(2)
-    gomoku = Gomoku(ai_mode, j1, j2)
+    gomoku = Gomoku(ai_mode)
 
     gomoku.coordinate = get_coordinate(nb_square)
     gomoku.inters = get_inter(nb_square, gomoku)
     while True:
-        gomoku.check_event(j1,j2)
+        gomoku.check_event()
         gomoku.display_player()
         gomoku.fill_background(nb_square)
 

@@ -15,7 +15,7 @@ TODO :
 
 yellow = (243, 210, 132)
 
-#notcur_p = lambda x, y , z : y if x == y else z
+notcur_p = lambda x, y , z : y if x != y else z
 
 def in_inter(pos, inters):
     """
@@ -206,20 +206,30 @@ class Gomoku():
         """
         newpos1 = [float(i * 38 + 30)  for i in pos1]
         newpos2 = [float(i * 38 + 30) for i in pos2]
-        if self.current_player == 1:
-            newpos1.append(2)
-            newpos2.append(2)
-        if self.current_player == 2:
-            newpos1.append(1)
-            newpos2.append(1)
+        ncur = notcur_p(self.current_player, self.j1.id, self.j2.id)
+        newpos1.append(ncur)
+        newpos2.append(ncur)
         newpos1 = tuple(newpos1)
         newpos2 = tuple(newpos2)
-        self.pos_player.remove(newpos1)
         pos1 = tuple(pos1)
-        self.coordinate[pos1] = -1
-        self.pos_player.remove(newpos2)
         pos2 = tuple(pos2)
+        self.coordinate[pos1] = -1
         self.coordinate[pos2] = -1
+        i = self.pos_player.index(newpos1)
+        j = self.pos_player.index(newpos2)
+
+
+        if self.current_player == 1:
+            self.j1.captured[self.pos_player[-1]] = [(newpos1, i), (newpos2, j)]
+            self.j1.capture += 1
+            print(self.j1.captured)
+        else:
+            self.j2.captured[self.pos_player[-1]] = [(newpos1, i), (newpos2, j)]
+            self.j2.capture += 1
+            print(self.j2.captured)
+
+        self.pos_player.remove(newpos1)
+        self.pos_player.remove(newpos2)
 
 
     def erase(self):
@@ -238,6 +248,7 @@ class Gomoku():
             try:
                 r = self.pos_player.pop()
                 self.coordinate[(int((r[0] - 30)/38), int((r[1] - 30)/38))] = -1
+                self.restore(r)
                 if self.current_player == 1:
                     self.current_player = 2
                 else:
@@ -246,6 +257,29 @@ class Gomoku():
             except IndexError:
                 pass
 
+    def restore(self, pos):
+        """restore captured pieces when undo"""
+        i = 0
+        if self.current_player == 1:
+            for key, coor in self.j1.captured.items():
+                if key == pos:
+                    for each in coor:
+                        self.pos_player.insert(each[1], each[0])
+                        self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
+                    self.j1.capture -= 1
+                    i = 1
+            if i == 1:
+                self.j1.captured.pop(pos)
+        else:
+            for key, coor in self.j2.captured.items():
+                if key == pos:
+                    for each in coor:
+                        self.pos_player.insert(each[1], each[0])
+                        self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
+                    self.j1.capture -= 1
+                    i = 1
+            if i == 1:
+                self.j2.captured.pop(pos)
 
     def fill_background(self, nb_square):
         self.window.fill(yellow)
@@ -276,12 +310,12 @@ class Gomoku():
 
 class Player():
 
-    def __init__(self, id_player, ai=False):
+    def __init__(self, id, ai=False):
         self.ai = ai
         self.capture = 0
         self.captured = {}
         self.alignement = 0
-        self.id_player = id_player
+        self.id = id
 
 
 def start_game():

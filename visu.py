@@ -84,8 +84,9 @@ class Gomoku():
         to_add_y = coordonates[1][1] - coordonates[0][1]
         pos_x = x
         pos_y = y
-        pos_x += to_add_x
-        pos_y += to_add_y        
+        while self.coordinate[pos_x, pos_y] == -1:
+            pos_x += to_add_x
+            pos_y += to_add_y        
         try:
             while self.coordinate[pos_x, pos_y] == self.current_player:
                 pos_x += to_add_x
@@ -110,14 +111,19 @@ class Gomoku():
                  or (key in self.ally and oposite[key] in self.ally and\
                         self.is_free(position[0], position[1], cord[key]) and\
                         self.is_free(position[0], position[1], cord[oposite[key]])):
+                print("-----------FP For this key {} it is true and free".format(key))
                 for pos in value:
+                    print("SP For this key {}".format(pos))                    
                     if pos in self.ally and self.ally[pos] >= 2 and self.is_free(position[0], position[1], cord[pos]):
+                        print("Can't place")
                         return False
                     if pos in self.ally and oposite[pos] in self.ally and\
                         self.is_free(position[0], position[1], cord[pos]) and\
                         self.is_free(position[0], position[1], cord[oposite[pos]]):
+                            print("Catn place too")
                             return False
         self.coordinate[position[0], position[1]] = self.current_player
+        print("ok to place")
         return True
 
 

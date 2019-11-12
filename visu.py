@@ -117,7 +117,6 @@ class Gomoku():
                         self.is_free(position[0], position[1], cord[pos]) and\
                         self.is_free(position[0], position[1], cord[oposite[pos]]):
                             return False
-
         self.coordinate[position[0], position[1]] = self.current_player
         return True
 

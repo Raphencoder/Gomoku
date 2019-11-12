@@ -3,14 +3,14 @@ import os
 import sys
 from menu import game_intro, text_objects, button
 from random import *
-from variables import cord, index, new_rules
+from variables import cord, index, new_rules, oposite
 import time
 
 
 """
 TODO :
-    * Ne pas permettre l'ajout de joueur sur le bord de la map
-    * timer
+    * Victory rules
+    * Free three bug
 """
 
 yellow = (243, 210, 132)
@@ -66,7 +66,7 @@ class Gomoku():
         self.pos_player = []
         self.coordinate = []
         self.ai_mode = ai_mode
-        self.current_player = 1
+        self.current_player = 2
         self.time_clock = pygame.time.Clock()
         if ai_mode:
             self.j1, self.j2 = Player(1, True), Player(2)
@@ -79,29 +79,49 @@ class Gomoku():
         else:
             self.current_player = 1
 
+    def is_free(self, x, y, coordonates):
+        to_add_x = coordonates[1][0] - coordonates[0][0]
+        to_add_y = coordonates[1][1] - coordonates[0][1]
+        pos_x = x
+        pos_y = y
+        pos_x += to_add_x
+        pos_y += to_add_y        
+        try:
+            while self.coordinate[pos_x, pos_y] == self.current_player:
+                pos_x += to_add_x
+                pos_y += to_add_y
+        except KeyError:
+            print("outside map")
+            print(pos_x, pos_y)
+            return False
+        if self.coordinate[pos_x, pos_y] == -1:
+            print("this is free")
+            return True
+        print("This is occupied")
+        return False
+
+
     def can_place(self, x, y):
         if ((x,) + (y,) + (1,)) in self.pos_player or ((x,) + (y,) + (2,)) in self.pos_player:
             return False
-        print(self.ally)
-        print(self.enemy)
-        print(self.outside)
+        position = (int((x - 30)/38), int((y - 30)/38))
         for key, value in new_rules.items():
-            try:
-                if self.ally[key] >= 2:
-                    for pos in value:
-                        try:
-                            if self.ally[pos] >= 2 and ("three_"+pos+"" in list(self.enemy.keys()) or "three_"+key+"" in list(self.enemy.keys())):
-                                print("return True")
-                                return True
-                            elif self.ally[pos] >= 2 and ("three_"+pos+"" not in list(self.outside.keys()) and "three_"+key+"" not in list(self.outside.keys())):
-                                self.change_player()
-                                print("return False")
-                                return False
-                        except KeyError:
-                            pass
-            except KeyError:
-                pass
+            if (key in self.ally and self.ally[key] >= 2 and self.is_free(position[0], position[1], cord[key]))\
+                 or (key in self.ally and oposite[key] in self.ally and\
+                        self.is_free(position[0], position[1], cord[key]) and\
+                        self.is_free(position[0], position[1], cord[oposite[key]])):
+                for pos in value:
+                    if pos in self.ally and self.ally[pos] >= 2 and self.is_free(position[0], position[1], cord[pos]):
+                        return False
+                    if pos in self.ally and oposite[pos] in self.ally and\
+                        self.is_free(position[0], position[1], cord[pos]) and\
+                        self.is_free(position[0], position[1], cord[oposite[pos]]):
+                            return False
+
+        self.coordinate[position[0], position[1]] = self.current_player
         return True
+
+
     def check_event(self):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
@@ -109,7 +129,6 @@ class Gomoku():
                 x_player, y_player = in_inter(pos, self.inters)
                 if x_player != 0 and y_player != 0:
                     pos = (int((x_player - 30)/38), int((y_player - 30)/38))
-                    self.change_player()
                     self.map_players(pos[0], pos[1])
                     if self.can_place(x_player, y_player):
                         self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
@@ -117,6 +136,7 @@ class Gomoku():
                         self.coordinate[pos] = self.current_player
                         self.check_hor_capture(pos[0], pos[1])
                         self.time_clock.tick()
+                        self.change_player()
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -159,7 +179,6 @@ class Gomoku():
         for e in range(9):
             to_add_x = -4
             for i in range(9):
-                print(to_add_x, to_add_y)
                 if (abs(to_add_x) == 1 and abs(to_add_y) == 2) or (abs(to_add_x) == 2 and abs(to_add_y) == 1):
                     """
                     only this coordonates

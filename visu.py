@@ -86,7 +86,7 @@ class Gomoku():
         pos_y = y
         while self.coordinate[pos_x, pos_y] == -1:
             pos_x += to_add_x
-            pos_y += to_add_y        
+            pos_y += to_add_y
         try:
             while self.coordinate[pos_x, pos_y] == self.current_player:
                 pos_x += to_add_x
@@ -113,7 +113,7 @@ class Gomoku():
                         self.is_free(position[0], position[1], cord[oposite[key]])):
                 print("-----------FP For this key {} it is true and free".format(key))
                 for pos in value:
-                    print("SP For this key {}".format(pos))                    
+                    print("SP For this key {}".format(pos))
                     if pos in self.ally and self.ally[pos] >= 2 and self.is_free(position[0], position[1], cord[pos]):
                         print("Can't place")
                         return False
@@ -212,6 +212,7 @@ class Gomoku():
     def check_hor_capture(self, x, y):
         # Take the values where they were 2 enemys on the row
         to_capture = [key for key, value in self.enemy.items() if value == 2]
+        to_erase = []
         if to_capture:
             for elem in to_capture:
                 try:
@@ -222,9 +223,12 @@ class Gomoku():
                 sup1 = [x + cord[elem][0][0], y + cord[elem][0][1]]
                 sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]
                 if pos != -1 and pos == self.current_player:
-                    self.capture(sup1, sup2)
+                    self.capture(sup1, sup2, to_erase)
+        for each in to_erase:
+            self.pos_player.remove(each)
+        del to_erase[:]
 
-    def capture(self, pos1, pos2):
+    def capture(self, pos1, pos2, to_erase):
         """
         need a few change when class Player will be implemented
         """
@@ -241,20 +245,24 @@ class Gomoku():
         self.coordinate[pos2] = -1
         i = self.pos_player.index(newpos1)
         j = self.pos_player.index(newpos2)
-
-
         if self.current_player == 1:
-            self.j1.captured[self.pos_player[-1]] = [(newpos1, i), (newpos2, j)]
-            self.j1.capture += 1
-            print(self.j1.captured)
+            if self.pos_player[-1] in self.j1.captured:
+                self.j1.captured[self.pos_player[-1]].append((newpos1, i))
+                self.j1.captured[self.pos_player[-1]].append((newpos2, j))
+                self.j1.capture += 1
+            else:
+                self.j1.captured[self.pos_player[-1]] = [(newpos1, i), (newpos2, j)]
+                self.j1.capture += 1
         else:
-            self.j2.captured[self.pos_player[-1]] = [(newpos1, i), (newpos2, j)]
-            self.j2.capture += 1
-            print(self.j2.captured)
-
-        self.pos_player.remove(newpos1)
-        self.pos_player.remove(newpos2)
-
+            if self.pos_player[-1] in self.j2.captured:
+                self.j2.captured[self.pos_player[-1]].append((newpos1, i))
+                self.j2.captured[self.pos_player[-1]].append((newpos2, j))
+                self.j2.capture += 1
+            else:
+                self.j2.captured[self.pos_player[-1]] = [(newpos1, i), (newpos2, j)]
+                self.j2.capture += 1
+        to_erase.append(newpos1)
+        to_erase.append(newpos2)
 
     def erase(self):
         "undo function, TODO restore captured piece"
@@ -284,12 +292,15 @@ class Gomoku():
     def restore(self, pos):
         """restore captured pieces when undo"""
         i = 0
-        if self.current_player == 1:
+        if self.current_player == 2:
             for key, coor in self.j1.captured.items():
                 if key == pos:
+                    order = sorted(coor, key=lambda i: i[1])
+                    print(order)
                     for each in coor:
-                        self.pos_player.insert(each[1], each[0])
                         self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
+                    for each in order:
+                        self.pos_player.insert(each[1], each[0])
                     self.j1.capture -= 1
                     i = 1
             if i == 1:
@@ -297,10 +308,13 @@ class Gomoku():
         else:
             for key, coor in self.j2.captured.items():
                 if key == pos:
+                    order = sorted(coor, key=lambda i: i[1])
+                    print(order)
                     for each in coor:
-                        self.pos_player.insert(each[1], each[0])
                         self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
-                    self.j1.capture -= 1
+                    for each in order:
+                        self.pos_player.insert(each[1], each[0])
+                    self.j2.capture -= 1
                     i = 1
             if i == 1:
                 self.j2.captured.pop(pos)
@@ -348,12 +362,6 @@ def start_game():
     ai_mode = game_intro(pygame.display.set_mode((800, 800)))
     pygame.quit()
     nb_square = 19
-    if not ai_mode:
-        j1 = Player(1)
-        j2 = Player(2)
-    else:
-        j1 = Player(1, True) #randomize later with randint
-        j2 = Player(2)
     gomoku = Gomoku(ai_mode)
 
     gomoku.coordinate = get_coordinate(nb_square)

@@ -1,7 +1,7 @@
 import pygame
 import os
 import sys
-from menu import game_intro, text_objects, button
+from menu import game_intro, text_objects, button, quit_game
 from random import *
 from variables import cord, index, new_rules, oposite
 import time
@@ -67,6 +67,9 @@ class Gomoku():
         self.coordinate = []
         self.ai_mode = ai_mode
         self.current_player = 2
+        self.nb_turn = 0
+        self.turn = 0
+        self.end = 0
         self.time_clock = pygame.time.Clock()
         if ai_mode:
             self.j1, self.j2 = Player(1, True), Player(2)
@@ -126,7 +129,6 @@ class Gomoku():
         print("ok to place")
         return True
 
-
     def check_event(self):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
@@ -141,10 +143,91 @@ class Gomoku():
                         self.coordinate[pos] = self.current_player
                         self.check_hor_capture(pos[0], pos[1])
                         self.time_clock.tick()
+                        if self.current_player == 1:
+                            self.j1.align = self.check_align(pos, 1)
+                            if self.nb_turn >= 4:
+                                self.checkmate(self.j2.check, self.check_align(self.j2.last_pos, 2))
+                            self.j1.last_pos = pos
+                            print(self.j2.last_pos)
+                        else:
+                            self.j2.align = self.check_align(pos, 2)
+                            if self.nb_turn >= 4:
+                                self.checkmate(self.j1.check, self.check_align(self.j1.last_pos, 1))
+                            self.j2.last_pos = pos
+                            print(self.j2.align)
+                        self.turn += 1
+                        if self.turn == 2:
+                            self.turn = 0
+                            self.nb_turn += 1
                         self.change_player()
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
+    def check_align(self, coor, player):
+        """
+        check alignement return a dict with each direction alignement 
+        need some refactoring
+        need to fix bug on border
+        """
+        n = {}
+        pos = 0
+        neg = 0
+        n["hor"] = 1
+        n["ver"] = 1
+        n["dia_r"] = 1
+        n["dia_l"] = 1
+        for x in range(1, 5):
+
+            if pos == 0 and self.coordinate[coor[0] + x, coor[1]] != player:
+                pos = 1
+            elif pos == 0:
+                n["hor"] += 1
+            if neg == 0 and self.coordinate[coor[0] - x, coor[1]] != player:
+                neg = 1
+            elif neg == 0:
+                n["hor"] += 1
+        pos = 0
+        neg = 0
+        for y in range(1, 5):
+            if pos == 0 and self.coordinate[coor[0], coor[1] + y] != player:
+                pos = 1
+            elif pos == 0:
+                n["ver"] += 1
+            if neg == 0 and self.coordinate[coor[0], coor[1] - y] != player:
+                neg = 1
+            elif neg == 0:
+                n["ver"] += 1
+        pos = 0
+        neg = 0
+        for xy in range(1, 5):
+            if pos == 0 and self.coordinate[coor[0] +xy, coor[1] + xy] != player:
+                pos = 1
+            elif pos == 0:
+                n["dia_r"] += 1
+            if neg == 0 and self.coordinate[coor[0] -xy, coor[1] - xy] != player:
+                neg = 1
+            elif neg == 0:
+                n["dia_r"] += 1
+        pos = 0
+        neg = 0
+        for xy in range(1, 5):
+            if pos == 0 and self.coordinate[coor[0] +xy, coor[1] - xy] != player:
+                pos = 1
+            elif pos == 0:
+                n["dia_l"] += 1
+            if neg == 0 and self.coordinate[coor[0] -xy, coor[1] + xy] != player:
+                neg = 1
+            elif neg == 0:
+                n["dia_l"] += 1
+        #print(n)
+        return(n)
+
+    def checkmate(self, check, align):
+        if check == 1 and 5 in align.values():
+            self.end = 1
+        else:
+            check = 0
 
     def add_enemy(self, x, y):
         """
@@ -264,6 +347,49 @@ class Gomoku():
         to_erase.append(newpos1)
         to_erase.append(newpos2)
 
+    def check_win(self):
+        """check if a condition for winning is fulfilled"""
+        if self.j1.capture >= 5 or self.j2.capture >= 5:
+            return(1)
+        elif self.end == 1:
+            return(1)
+        elif 5 in self.j1.align.values():
+            self.j1.check = 1
+            return(0)
+        elif 5 in self.j2.align.values():
+            self.j2.check = 1
+            return(0)
+
+
+    def d_win(self):
+        """display winner and message need refactoring and more polish"""
+        if self.j2.capture >= 5:
+            smallText = pygame.font.Font("freesansbold.ttf",24)
+            textSurf, textRect = text_objects("J1 Win By Capture", smallText)
+            textRect.center = (400, 770)
+            button(250, 400, 150, 50, "exit", self.window, quit_game)
+            self.window.blit(textSurf, textRect)
+        elif self.j1.capture >= 5:
+            smallText = pygame.font.Font("freesansbold.ttf",24)
+            textSurf, textRect = text_objects("J2 Win By Capture", smallText)
+            textRect.center = (400, 770)
+            button(250, 400, 150, 50, "exit", self.window, quit_game)
+            self.window.blit(textSurf, textRect)
+        elif 5 in self.j2.align.values():
+            smallText = pygame.font.Font("freesansbold.ttf",24)
+            textSurf, textRect = text_objects("J2 Win By alignement", smallText)
+            textRect.center = (400, 770)
+            button(250, 400, 150, 50, "exit", self.window, quit_game)
+            self.window.blit(textSurf, textRect)
+        elif 5 in self.j1.align.values():
+            smallText = pygame.font.Font("freesansbold.ttf",24)
+            textSurf, textRect = text_objects("J1 Win By alignement", smallText)
+            textRect.center = (400, 770)
+            button(250, 400, 150, 50, "exit", self.window, quit_game)
+            self.window.blit(textSurf, textRect)
+
+
+
     def erase(self):
         "undo function, TODO restore captured piece"
         if self.ai_mode:
@@ -301,9 +427,9 @@ class Gomoku():
                         self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
                     for each in order:
                         self.pos_player.insert(each[1], each[0])
-                    self.j1.capture -= 1
-                    i = 1
-            if i == 1:
+                        i += 1
+                    self.j1.capture -= i/2
+            if i > 0:
                 self.j1.captured.pop(pos)
         else:
             for key, coor in self.j2.captured.items():
@@ -314,9 +440,9 @@ class Gomoku():
                         self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
                     for each in order:
                         self.pos_player.insert(each[1], each[0])
-                    self.j2.capture -= 1
-                    i = 1
-            if i == 1:
+                        i += 1
+                    self.j2.capture -= i/2
+            if i > 0:
                 self.j2.captured.pop(pos)
 
     def fill_background(self, nb_square):
@@ -352,8 +478,10 @@ class Player():
         self.ai = ai
         self.capture = 0
         self.captured = {}
-        self.alignement = 0
+        self.align = {}
         self.id = id
+        self.check = 0
+        self.last_pos = None
 
 
 def start_game():
@@ -367,8 +495,12 @@ def start_game():
     gomoku.coordinate = get_coordinate(nb_square)
     gomoku.inters = get_inter(nb_square, gomoku)
     while True:
+        if gomoku.check_win():
+            gomoku.d_win()
+            event = pygame.event.wait()
         gomoku.check_event()
         gomoku.display_player()
         gomoku.fill_background(nb_square)
+    pygame.quit()
 
 start_game()

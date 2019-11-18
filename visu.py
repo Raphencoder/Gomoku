@@ -3,13 +3,13 @@ import os
 import sys
 from menu import game_intro, text_objects, button, quit_game
 from random import *
-from variables import cord, index, new_rules, oposite
+from variables import cord, index, new_rules, oposite, dir
 import time
 
 
 """
 TODO :
-    * Victory rules
+    *minimax algo with alphabeta pruning
     * Free three bug
 """
 
@@ -144,17 +144,19 @@ class Gomoku():
                         self.check_hor_capture(pos[0], pos[1])
                         self.time_clock.tick()
                         if self.current_player == 1:
-                            self.j1.align = self.check_align(pos, 1)
+                            for each in dir:
+                                self.j1.align = self.check_align(pos, 1, each, self.j1.align)
+                            print(self.j1.align)
                             if self.nb_turn >= 4:
-                                self.checkmate(self.j2.check, self.check_align(self.j2.last_pos, 2))
+                                self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
                             self.j1.last_pos = pos
-                            print(self.j2.last_pos)
                         else:
-                            self.j2.align = self.check_align(pos, 2)
-                            if self.nb_turn >= 4:
-                                self.checkmate(self.j1.check, self.check_align(self.j1.last_pos, 1))
-                            self.j2.last_pos = pos
+                            for each in dir:
+                                self.j2.align = self.check_align(pos, 2, each, self.j2.align)
                             print(self.j2.align)
+                            if self.nb_turn >= 4:
+                                self.checkmate(self.j1.check, self.j1.last_pos, 1, self.j1.align)
+                            self.j2.last_pos = pos
                         self.turn += 1
                         if self.turn == 2:
                             self.turn = 0
@@ -164,66 +166,54 @@ class Gomoku():
                 pygame.quit()
                 quit()
 
-    def check_align(self, coor, player):
-        """
-        check alignement return a dict with each direction alignement 
-        need some refactoring
-        need to fix bug on border
-        """
-        n = {}
-        pos = 0
-        neg = 0
-        n["hor"] = 1
-        n["ver"] = 1
-        n["dia_r"] = 1
-        n["dia_l"] = 1
-        for x in range(1, 5):
-
-            if pos == 0 and self.coordinate[coor[0] + x, coor[1]] != player:
-                pos = 1
-            elif pos == 0:
-                n["hor"] += 1
-            if neg == 0 and self.coordinate[coor[0] - x, coor[1]] != player:
-                neg = 1
-            elif neg == 0:
-                n["hor"] += 1
-        pos = 0
-        neg = 0
-        for y in range(1, 5):
-            if pos == 0 and self.coordinate[coor[0], coor[1] + y] != player:
-                pos = 1
-            elif pos == 0:
-                n["ver"] += 1
-            if neg == 0 and self.coordinate[coor[0], coor[1] - y] != player:
-                neg = 1
-            elif neg == 0:
-                n["ver"] += 1
-        pos = 0
-        neg = 0
-        for xy in range(1, 5):
-            if pos == 0 and self.coordinate[coor[0] +xy, coor[1] + xy] != player:
-                pos = 1
-            elif pos == 0:
-                n["dia_r"] += 1
-            if neg == 0 and self.coordinate[coor[0] -xy, coor[1] - xy] != player:
-                neg = 1
-            elif neg == 0:
-                n["dia_r"] += 1
-        pos = 0
-        neg = 0
-        for xy in range(1, 5):
-            if pos == 0 and self.coordinate[coor[0] +xy, coor[1] - xy] != player:
-                pos = 1
-            elif pos == 0:
-                n["dia_l"] += 1
-            if neg == 0 and self.coordinate[coor[0] -xy, coor[1] + xy] != player:
-                neg = 1
-            elif neg == 0:
-                n["dia_l"] += 1
-        #print(n)
+    def check_align(self, coor, player, dir, n):
+        """return each alignement direction for current coordinate"""
+        n[dir] = 1
+        pn = [1,1]
+        for x in range (1, 5):
+            pn = self.calc(dir, x, coor, pn, player)
+            if pn[0]:
+                n[dir] += 1
+            if pn[1]:
+                n[dir] += 1
         return(n)
 
-    def checkmate(self, check, align):
+    def calc(self, dir, x, coor, pn, player):
+        """check each neighboor of coor for each direction"""
+        if dir == "hor":
+            coord = ((coor[0] + x, coor[1]), (coor[0] - x, coor[1]))
+            pn = self.not_player(coord, pn, player)
+        elif dir == "ver":
+            coord = ((coor[0], coor[1] + x), (coor[0], coor[1] - x))
+            pn = self.not_player(coord, pn, player)
+        elif dir == "dia_r":
+            coord = ((coor[0] +x , coor[1] -x), (coor[0] -x , coor[1] +x))
+            pn = self.not_player(coord, pn, player)
+        elif dir == "dia_l":
+            coord = ((coor[0] +x , coor[1] +x), (coor[0] -x , coor[1] -x))
+            pn = self.not_player(coord, pn, player)
+        return(pn)
+
+    def not_player(self, coord, pn, player):
+        """check if coordinate neighboor aren't out of the map or the enemy pawn"""
+        pn = self.out_of_map(coord, pn)
+        if pn[0] and self.coordinate[coord[0]] != player:
+            pn[0] = 0
+        if pn[1] and self.coordinate[coord[1]] != player:
+            pn[1] = 0
+        return(pn)
+
+    def out_of_map(self, coor, pn):
+        if coor[0] not in self.coordinate:
+            pn[0] = 0
+        if coor[1] not in self.coordinate:
+            pn[1] = 0
+        return(pn)
+
+    def checkmate(self, check, pos, p, align):
+        """trigger the end of the game if check not countered"""
+        for each in dir:
+            align = self.check_align(pos, p, each, align)
         if check == 1 and 5 in align.values():
             self.end = 1
         else:
@@ -360,45 +350,34 @@ class Gomoku():
             self.j2.check = 1
             return(0)
 
-
     def d_win(self):
         """display winner and message need refactoring and more polish"""
         if self.j2.capture >= 5:
-            smallText = pygame.font.Font("freesansbold.ttf",24)
-            textSurf, textRect = text_objects("J1 Win By Capture", smallText)
-            textRect.center = (400, 770)
-            button(250, 400, 150, 50, "exit", self.window, quit_game)
-            self.window.blit(textSurf, textRect)
+            self.message("J2 win by Capture")
         elif self.j1.capture >= 5:
-            smallText = pygame.font.Font("freesansbold.ttf",24)
-            textSurf, textRect = text_objects("J2 Win By Capture", smallText)
-            textRect.center = (400, 770)
-            button(250, 400, 150, 50, "exit", self.window, quit_game)
-            self.window.blit(textSurf, textRect)
+            self.message("J1 Win By Capture")
         elif 5 in self.j2.align.values():
-            smallText = pygame.font.Font("freesansbold.ttf",24)
-            textSurf, textRect = text_objects("J2 Win By alignement", smallText)
-            textRect.center = (400, 770)
-            button(250, 400, 150, 50, "exit", self.window, quit_game)
-            self.window.blit(textSurf, textRect)
+            self.message("J2 Win By Alignement")
         elif 5 in self.j1.align.values():
-            smallText = pygame.font.Font("freesansbold.ttf",24)
-            textSurf, textRect = text_objects("J1 Win By alignement", smallText)
-            textRect.center = (400, 770)
-            button(250, 400, 150, 50, "exit", self.window, quit_game)
-            self.window.blit(textSurf, textRect)
+            self.message("J1 Win By Alignement")
 
-
+    def message(self, msg):
+        smallText = pygame.font.Font("freesansbold.ttf",24)
+        textSurf, textRect = text_objects(msg, smallText)
+        textRect.center = (400, 770)
+        button(0, 760, 150, 50, "Exit", self.window, quit_game)
+        self.window.blit(textSurf, textRect)
 
     def erase(self):
-        "undo function, TODO restore captured piece"
+        """undo function TODO check when ai_mode implemeted"""
         if self.ai_mode:
             try:
                 r = self.pos_player.pop()
+                self.coordinate[(int((r[0] - 30)/38), int((r[0] - 30)/38))] = -1
+                self.restore(r)
                 r1 = self.pos_player.pop()
                 self.coordinate[(int((r1[0] - 30)/38), int((r1[1] - 30)/38))] = -1
-
-                self.coordinate[(int((r[0] - 30)/38), int((r[0] - 30)/38))] = -1
+                self.restore(r1)
                 time.sleep(0.2)
             except IndexError:
                 pass
@@ -413,6 +392,7 @@ class Gomoku():
                     self.current_player = 1
                 time.sleep(0.2)
             except IndexError:
+                print("can't undo anymore")
                 pass
 
     def restore(self, pos):
@@ -462,7 +442,8 @@ class Gomoku():
         textSurf, textRect = text_objects(str(self.time_clock.get_rawtime()/1000) + " seconds", smallText)
         textRect.center = ((650+(150/2)), (750+(50/2)))
         self.window.blit(textSurf, textRect)
-        button(0, 760, 150, 50, "undo", self.window, self.erase)
+        if not self.end:
+            button(0, 760, 150, 50, "Undo", self.window, self.erase)
 
     def display_player(self):
         for elem in self.pos_player:

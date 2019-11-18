@@ -100,7 +100,7 @@ new_rules["diag_left_down"] = [
                 "vert_up",
                 "hor_right",
                 "diag_right_down",
-                "vert_down",  
+                "vert_down",
                 "hor_left",
                 "diag_left_up"
 ]
@@ -108,7 +108,7 @@ new_rules["hor_left"] = [
                 "vert_up",
                 "diag_right_up",
                 "diag_right_down",
-                "vert_down",  
+                "vert_down",
                 "diag_left_down",
                 "diag_left_up"
 ]
@@ -116,7 +116,7 @@ new_rules["diag_left_up"] = [
                 "vert_up",
                 "diag_right_up",
                 "hor_right",
-                "vert_down",    
+                "vert_down",
                 "diag_left_down",
                 "hor_left"
 ]
@@ -129,5 +129,4 @@ oposite["diag_right_down"] = "diag_left_up"
 oposite["diag_left_up"] = "diag_right_down"
 oposite["vert_up"] = "vert_down"
 oposite["vert_down"] = "vert_up"
-
-
+dir = ["hor", "ver", "dia_l", "dia_r"]

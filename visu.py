@@ -85,15 +85,23 @@ class Gomoku():
     def is_free(self, x, y, coordonates):
         to_add_x = coordonates[1][0] - coordonates[0][0]
         to_add_y = coordonates[1][1] - coordonates[0][1]
+        print(to_add_x, to_add_y, coordonates)
         pos_x = x
         pos_y = y
-        while self.coordinate[pos_x, pos_y] == -1:
-            pos_x += to_add_x
-            pos_y += to_add_y
+        count = 0
+        try:
+            while self.coordinate[pos_x, pos_y] == -1:
+                pos_x += to_add_x
+                pos_y += to_add_y
+        except KeyError:
+            return False        
         try:
             while self.coordinate[pos_x, pos_y] == self.current_player:
                 pos_x += to_add_x
                 pos_y += to_add_y
+                count += 1
+                if count >= 3:
+                    return False
         except KeyError:
             print("outside map")
             print(pos_x, pos_y)
@@ -116,8 +124,18 @@ class Gomoku():
                         self.is_free(position[0], position[1], cord[oposite[key]])):
                 print("-----------FP For this key {} it is true and free".format(key))
                 for pos in value:
+                    if (key in self.ally and self.ally[key] >= 3) or (oposite[key] in self.ally and\
+                        key in self.ally and self.ally[key] + self.ally[oposite[key]] >= 3):
+                        print("More than three")
+                        return True 
+                    if (pos in self.ally and self.ally[pos] >= 3) or (oposite[pos] in self.ally and\
+                        pos in self.ally and self.ally[pos] + self.ally[oposite[pos]] >= 3):
+                        print("More than three")
+                        return True 
                     print("SP For this key {}".format(pos))
-                    if pos in self.ally and self.ally[pos] >= 2 and self.is_free(position[0], position[1], cord[pos]):
+                    if pos in self.ally and self.ally[pos] >= 2 and self.is_free(position[0], position[1], cord[pos])\
+                        and self.is_free(position[0], position[1], cord[oposite[pos]])\
+                        and self.is_free(position[0], position[1], cord[oposite[key]]):
                         print("Can't place")
                         return False
                     if pos in self.ally and oposite[pos] in self.ally and\

@@ -2,7 +2,7 @@ import pygame
 import os
 import sys
 from menu import game_intro, text_objects, button, quit_game
-from random import *
+import random
 from variables import cord, index, new_rules, oposite, dir
 import time
 
@@ -16,6 +16,8 @@ TODO :
 yellow = (243, 210, 132)
 
 notcur_p = lambda x, y , z : y if x != y else z
+conv = lambda x: (x - 30)/38
+r_conv = lambda x: x * 38 + 30
 
 def in_inter(pos, inters):
     """
@@ -94,7 +96,7 @@ class Gomoku():
                 pos_x += to_add_x
                 pos_y += to_add_y
         except KeyError:
-            return False        
+            return False
         try:
             while self.coordinate[pos_x, pos_y] == self.current_player:
                 pos_x += to_add_x
@@ -127,11 +129,11 @@ class Gomoku():
                     if (key in self.ally and self.ally[key] >= 3) or (oposite[key] in self.ally and\
                         key in self.ally and self.ally[key] + self.ally[oposite[key]] >= 3):
                         print("More than three")
-                        return True 
+                        return True
                     if (pos in self.ally and self.ally[pos] >= 3) or (oposite[pos] in self.ally and\
                         pos in self.ally and self.ally[pos] + self.ally[oposite[pos]] >= 3):
                         print("More than three")
-                        return True 
+                        return True
                     print("SP For this key {}".format(pos))
                     if pos in self.ally and self.ally[pos] >= 2 and self.is_free(position[0], position[1], cord[pos])\
                         and self.is_free(position[0], position[1], cord[oposite[pos]])\
@@ -149,7 +151,7 @@ class Gomoku():
 
     def check_event(self):
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONUP and (not self.ai_mode or self.current_player == 1):
+            if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
                 x_player, y_player = in_inter(pos, self.inters)
                 if x_player != 0 and y_player != 0:
@@ -195,6 +197,34 @@ class Gomoku():
             if pn[1]:
                 n[dir] += 1
         return(n)
+
+    def ai_play(self):
+        print("ai_turn")
+        if self.nb_turn < 3:
+            self.opening_books()
+        else:
+            #TO_DO minimax
+            self.change_player()
+        self.change_player()
+
+    def opening_books(self):
+        if not self.pos_player:
+            self.pos_player.append((r_conv(9), r_conv(9), 1))
+            self.turn += 1
+        else:
+            x = random.randint(-1,1)
+            l_play = [conv(self.pos_player[-1][0]) + x, conv(self.pos_player[-1][1]) + x]
+            while not self.can_place(r_conv(l_play[0]), r_conv(l_play[1])):
+                l_play[0] = l_play[0] + random.randint(-1,1)
+                l_play[1] = l_play[1] + random.randint(-1,1)
+            self.pos_player.append((r_conv(l_play[0]), r_conv(l_play[1]), 1))
+            self.time_clock.tick()
+            print(l_play)
+            self.turn += 1
+            if self.turn == 2:
+                self.turn = 0
+                self.nb_turn += 1
+
 
     def calc(self, dir, x, coor, pn, player):
         """check each neighboor of coor for each direction"""
@@ -369,7 +399,7 @@ class Gomoku():
             return(0)
 
     def d_win(self):
-        """display winner and message need refactoring and more polish"""
+        """display winner and message """
         if self.j2.capture >= 5:
             self.message("J2 win by Capture")
         elif self.j1.capture >= 5:
@@ -389,29 +419,23 @@ class Gomoku():
     def erase(self):
         """undo function TODO check when ai_mode implemeted"""
         if self.ai_mode:
-            try:
-                r = self.pos_player.pop()
-                self.coordinate[(int((r[0] - 30)/38), int((r[0] - 30)/38))] = -1
-                self.restore(r)
-                r1 = self.pos_player.pop()
-                self.coordinate[(int((r1[0] - 30)/38), int((r1[1] - 30)/38))] = -1
-                self.restore(r1)
-                time.sleep(0.2)
-            except IndexError:
-                pass
+            r = self.pos_player.pop()
+            self.coordinate[(int((r[0] - 30)/38), int((r[0] - 30)/38))] = -1
+            self.restore(r)
+            r1 = self.pos_player.pop()
+            self.coordinate[(int((r1[0] - 30)/38), int((r1[1] - 30)/38))] = -1
+            self.restore(r1)
+            self.nb_turn -= 1
+            time.sleep(0.2)
         else:
-            try:
-                r = self.pos_player.pop()
-                self.coordinate[(int((r[0] - 30)/38), int((r[1] - 30)/38))] = -1
-                self.restore(r)
-                if self.current_player == 1:
-                    self.current_player = 2
-                else:
-                    self.current_player = 1
-                time.sleep(0.2)
-            except IndexError:
-                print("can't undo anymore")
-                pass
+            r = self.pos_player.pop()
+            self.coordinate[(int((r[0] - 30)/38), int((r[1] - 30)/38))] = -1
+            self.restore(r)
+            if self.current_player == 1:
+                self.current_player = 2
+            else:
+                self.current_player = 1
+            time.sleep(0.2)
 
     def restore(self, pos):
         """restore captured pieces when undo"""
@@ -460,7 +484,7 @@ class Gomoku():
         textSurf, textRect = text_objects(str(self.time_clock.get_rawtime()/1000) + " seconds", smallText)
         textRect.center = ((650+(150/2)), (750+(50/2)))
         self.window.blit(textSurf, textRect)
-        if not self.end:
+        if not self.end and self.pos_player:
             button(0, 760, 150, 50, "Undo", self.window, self.erase)
 
     def display_player(self):
@@ -497,6 +521,11 @@ def start_game():
         if gomoku.check_win():
             gomoku.d_win()
             event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                quit_game()
+        if ai_mode and gomoku.current_player == 1:
+            gomoku.ai_play()
+            #gomoku.display_player()
         gomoku.check_event()
         gomoku.display_player()
         gomoku.fill_background(nb_square)

@@ -3,7 +3,7 @@ import os
 import sys
 from menu import game_intro, text_objects, button, quit_game
 import random
-from variables import cord, index, new_rules, oposite, dir
+from variables import cord, index, new_rules, oposite, dir, alignement, score
 import time
 
 
@@ -166,14 +166,12 @@ class Gomoku():
                         if self.current_player == 1:
                             for each in dir:
                                 self.j1.align = self.check_align(pos, 1, each, self.j1.align)
-                            print(self.j1.align)
                             if self.nb_turn >= 4:
                                 self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
                             self.j1.last_pos = pos
                         else:
                             for each in dir:
                                 self.j2.align = self.check_align(pos, 2, each, self.j2.align)
-                            print(self.j2.align)
                             if self.nb_turn >= 4:
                                 self.checkmate(self.j1.check, self.j1.last_pos, 1, self.j1.align)
                             self.j2.last_pos = pos
@@ -186,26 +184,31 @@ class Gomoku():
                 pygame.quit()
                 quit()
 
-    def check_align(self, coor, player, dir, n):
-        """return each alignement direction for current coordinate"""
-        n[dir] = 1
-        pn = [1,1]
-        for x in range (1, 5):
-            pn = self.calc(dir, x, coor, pn, player)
-            if pn[0]:
-                n[dir] += 1
-            if pn[1]:
-                n[dir] += 1
-        return(n)
-
     def ai_play(self):
-        print("ai_turn")
-        if self.nb_turn < 3:
-            self.opening_books()
-        else:
-            #TO_DO minimax
+            print("ai_turn")
+            if self.nb_turn < 3:
+                self.opening_books()
+            else:
+                maxs = -10000
+                for i in range(5):
+                # TODO pos = self.checkboard(), return a list of pos to check
+                    s = self.evaluate((9,9))
+                    if s > maxs:
+                        maxs = s
+                print(maxs)
             self.change_player()
-        self.change_player()
+
+
+    def evaluate(self, pos):
+        """return total value of pos (hor+ver+dia_l+dia_r)"""
+        total = 0
+        for each in dir:
+            self.j1.align = self.check_align(pos, 1, each, self.j1.align)
+        val_list = list(self.j1.align.values())
+        print(val_list)
+        for each in val_list:
+            total += score[alignement[tuple(each)]]
+        return(total)
 
     def opening_books(self):
         if not self.pos_player:
@@ -225,37 +228,48 @@ class Gomoku():
                 self.turn = 0
                 self.nb_turn += 1
 
+    def check_align(self, coor, player, dir, n):
+        """return each alignement direction for current coordinate"""
+        n[dir] = [1]
+        pn = [1,1]
+        for x in range (1, 5):
+            pn = self.calc(n, dir, x, coor, pn, player)
+            if pn[0]:
+                n[dir][0] += 1
+            if pn[1]:
+                n[dir][0] += 1
+        return(n)
 
-    def calc(self, dir, x, coor, pn, player):
+    def calc(self,n , dir, x, coor, pn, player):
         """check each neighboor of coor for each direction"""
         if dir == "hor":
             coord = ((coor[0] + x, coor[1]), (coor[0] - x, coor[1]))
-            pn = self.not_player(coord, pn, player)
         elif dir == "ver":
             coord = ((coor[0], coor[1] + x), (coor[0], coor[1] - x))
-            pn = self.not_player(coord, pn, player)
         elif dir == "dia_r":
             coord = ((coor[0] +x , coor[1] -x), (coor[0] -x , coor[1] +x))
-            pn = self.not_player(coord, pn, player)
         elif dir == "dia_l":
             coord = ((coor[0] +x , coor[1] +x), (coor[0] -x , coor[1] -x))
-            pn = self.not_player(coord, pn, player)
+        pn = self.not_player(coord, pn, player, n[dir])
         return(pn)
 
-    def not_player(self, coord, pn, player):
+    def not_player(self, coord, pn, player, ndir):
         """check if coordinate neighboor aren't out of the map or the enemy pawn"""
-        pn = self.out_of_map(coord, pn)
-        if pn[0] and self.coordinate[coord[0]] != player:
-            pn[0] = 0
-        if pn[1] and self.coordinate[coord[1]] != player:
-            pn[1] = 0
+        pn = self.out_of_map(coord, pn, ndir)
+        for i in range(2):
+            if pn[i] and self.coordinate[coord[i]] == -1:
+                ndir.append(True)
+                pn[i] = 0
+            elif pn[i] and self.coordinate[coord[i]] != player:
+                ndir.append(False)
+                pn[i] = 0
         return(pn)
 
-    def out_of_map(self, coor, pn):
-        if coor[0] not in self.coordinate:
-            pn[0] = 0
-        if coor[1] not in self.coordinate:
-            pn[1] = 0
+    def out_of_map(self, coor, pn, ndir):
+        for i in range(2):
+            if coor[i] not in self.coordinate:
+                pn[i] = 0
+                ndir.append(False)
         return(pn)
 
     def checkmate(self, check, pos, p, align):

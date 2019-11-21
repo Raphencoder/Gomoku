@@ -130,3 +130,38 @@ oposite["diag_left_up"] = "diag_right_down"
 oposite["vert_up"] = "vert_down"
 oposite["vert_down"] = "vert_up"
 dir = ["hor", "ver", "dia_l", "dia_r"]
+
+alignement = {
+    (1, True, True): "one_free",
+    (1, True, False): "one_sided",
+    (1, False, True): "one_sided",
+    (1, False, False): "one_block",
+    (2, True, True): "two_free",
+    (2, True, False): "two_sided",
+    (2, False, True): "two_sided",
+    (2, False, False):"two_block",
+    (3, True, True):"three_free",
+    (3, True, False):"three_sided",
+    (3, False, True):"three_sided",
+    (3, False, False):"three_block",
+    (4, True, True):"four_free",
+    (4, True, False):"four_sided",
+    (4, False, True):"four_sided",
+    (4, False, False):"four_block",
+    (5):"five"
+}
+score = {
+    "one_free" : 5,
+    "one_sided" : 2,
+    "one_block" : 0,
+    "two_free" : 10,
+    "two_sided" : -5,
+    "two_block" : 0,
+    "three_free" : 100,
+    "three_sided" : 50,
+    "three_block" : 20,
+    "four_free" : 2000,
+    "four_sided" : 3000,
+    "four_block" : 150,
+    "five" : 5000,
+    }

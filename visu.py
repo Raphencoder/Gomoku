@@ -145,7 +145,6 @@ class Gomoku():
                         self.is_free(position[0], position[1], cord[oposite[pos]]):
                             print("Catn place too")
                             return False
-        self.coordinate[position[0], position[1]] = self.current_player
         print("ok to place")
         return True
 
@@ -162,7 +161,6 @@ class Gomoku():
                         pos = (int((x_player - 30)/38), int((y_player - 30)/38))
                         self.coordinate[pos] = self.current_player
                         self.check_hor_capture(pos[0], pos[1])
-                        self.time_clock.tick()
                         if self.current_player == 1:
                             for each in dir:
                                 self.j1.align = self.check_align(pos, 1, each, self.j1.align)
@@ -175,45 +173,88 @@ class Gomoku():
                             if self.nb_turn >= 4:
                                 self.checkmate(self.j1.check, self.j1.last_pos, 1, self.j1.align)
                             self.j2.last_pos = pos
-                        self.turn += 1
-                        if self.turn == 2:
-                            self.turn = 0
-                            self.nb_turn += 1
+                        self.inc_turn()
                         self.change_player()
+                        self.time_clock.tick()
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
 
     def ai_play(self):
-            print("ai_turn")
+        if not self.j1.win:
             if self.nb_turn < 3:
                 self.opening_books()
             else:
                 maxs = -10000
-                for i in range(5):
-                # TODO pos = self.checkboard(), return a list of pos to check
-                    s = self.evaluate((9,9))
-                    if s > maxs:
-                        maxs = s
+                play = None
+                pos = self.check_board()
+                for each in pos:
+                    s = self.evaluate(each)
+                    if s and s[0] > maxs:
+                        maxs = s[0]
+                        play = s[1]
                 print(maxs)
+                self.pos_player.append(play)
+                self.time_clock.tick()
+                self.j1.last_pos = (conv(play[0]), conv(play[1]))
+                self.coordinate[self.j1.last_pos] = 1
+                self.inc_turn()
+                for each in dir:
+                    self.j1.align = self.check_align(self.j1.last_pos, 1, each, self.j1.align)
+                print(self.j1.align, self.j1.last_pos)
+                if self.nb_turn >= 4:
+                    self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
             self.change_player()
-
 
     def evaluate(self, pos):
         """return total value of pos (hor+ver+dia_l+dia_r)"""
-        total = 0
-        for each in dir:
-            self.j1.align = self.check_align(pos, 1, each, self.j1.align)
-        val_list = list(self.j1.align.values())
-        print(val_list)
-        for each in val_list:
-            total += score[alignement[tuple(each)]]
-        return(total)
+        total = [0]
+        if self.can_place(r_conv(pos[0]), r_conv(pos[1])):
+            for each in dir:
+                self.j1.align = self.check_align(pos, 1, each, self.j1.align)
+            val_list = list(self.j1.align.values())
+            for each in val_list:
+                print(score[alignement[tuple(each)]])
+                total[0] += score[alignement[tuple(each)]]
+                total.append((r_conv(pos[0]), r_conv(pos[1]), 1))
+            return(total)
+        return(list())
+
+    def check_board(self):
+        pos = list()
+        for dir, value in self.j2.align.items():
+            if value == 5:
+                continue
+            for i in range(4, 0, -1):
+                pos = self.check_threat(dir, value, i, pos, self.j2.last_pos)
+        for dir, value in self.j1.align.items():
+            if value == 5:
+                continue
+                for i in range(4, 0, -1):
+                    pos = self.check_threat(key, value, i, pos, self.j1.last_pos)
+        return(pos)
+
+    def check_threat(self, dir, value, i, pos, last_pos):
+        if value[0] == i:
+            if dir == "hor":
+                pos.append((last_pos[0] + i , last_pos[1]))
+                pos.append((last_pos[0] - i , last_pos[1]))
+            elif dir == "ver":
+                pos.append((last_pos[0], last_pos[1] + i))
+                pos.append((last_pos[0], last_pos[1] - i))
+            elif dir == "dia_r":
+                pos.append((last_pos[0] + i , last_pos[1] - i))
+                pos.append((last_pos[0] - i , last_pos[1] + i))
+            elif dir == "dia_l":
+                pos.append((last_pos[0] + i , last_pos[1] + i))
+                pos.append((last_pos[0] - i , last_pos[1] - i))
+        return(pos)
 
     def opening_books(self):
         if not self.pos_player:
             self.pos_player.append((r_conv(9), r_conv(9), 1))
-            self.turn += 1
+            self.coordinate[(9,9)] = 1
+            self.inc_turn()
         else:
             x = random.randint(-1,1)
             l_play = [conv(self.pos_player[-1][0]) + x, conv(self.pos_player[-1][1]) + x]
@@ -221,12 +262,10 @@ class Gomoku():
                 l_play[0] = l_play[0] + random.randint(-1,1)
                 l_play[1] = l_play[1] + random.randint(-1,1)
             self.pos_player.append((r_conv(l_play[0]), r_conv(l_play[1]), 1))
+            self.j1.last_pos = (l_play[0], l_play[1])
+            self.coordinate[self.j1.last_pos] = 1
+            self.inc_turn()
             self.time_clock.tick()
-            print(l_play)
-            self.turn += 1
-            if self.turn == 2:
-                self.turn = 0
-                self.nb_turn += 1
 
     def check_align(self, coor, player, dir, n):
         """return each alignement direction for current coordinate"""
@@ -240,7 +279,7 @@ class Gomoku():
                 n[dir][0] += 1
         return(n)
 
-    def calc(self,n , dir, x, coor, pn, player):
+    def calc(self, n , dir, x, coor, pn, player):
         """check each neighboor of coor for each direction"""
         if dir == "hor":
             coord = ((coor[0] + x, coor[1]), (coor[0] - x, coor[1]))
@@ -267,7 +306,7 @@ class Gomoku():
 
     def out_of_map(self, coor, pn, ndir):
         for i in range(2):
-            if coor[i] not in self.coordinate:
+            if pn[i] and (coor[i] not in self.coordinate):
                 pn[i] = 0
                 ndir.append(False)
         return(pn)
@@ -276,8 +315,15 @@ class Gomoku():
         """trigger the end of the game if check not countered"""
         for each in dir:
             align = self.check_align(pos, p, each, align)
-        if check == 1 and 5 in align.values():
-            self.end = 1
+        if check == 1:
+            value = list(align.values())
+            fullist = [item for sublist in value for item in sublist]
+            if 5 in fullist:
+                self.end = 1
+            if p == 1:
+                self.j1.win = 1
+            else:
+                self.j2.win = 1
         else:
             check = 0
 
@@ -405,22 +451,30 @@ class Gomoku():
             return(1)
         elif self.end == 1:
             return(1)
-        elif 5 in self.j1.align.values():
-            self.j1.check = 1
-            return(0)
-        elif 5 in self.j2.align.values():
-            self.j2.check = 1
-            return(0)
+        elif self.current_player == 2:
+            value = list(self.j1.align.values())
+            fullist = [item for sublist in value for item in sublist]
+            if 5 in fullist:
+                self.j1.check = 1
+                return(0)
+        else:
+            value = list(self.j2.align.values())
+            fullist = [item for sublist in value for item in sublist]
+            if 5 in fullist:
+                self.j2.check = 1
+                return(0)
 
     def d_win(self):
         """display winner and message """
         if self.j2.capture >= 5:
+            self.end = 1
             self.message("J2 win by Capture")
         elif self.j1.capture >= 5:
+            self.end = 1
             self.message("J1 Win By Capture")
-        elif 5 in self.j2.align.values():
+        elif self.j2.win:
             self.message("J2 Win By Alignement")
-        elif 5 in self.j1.align.values():
+        elif self.j1.win:
             self.message("J1 Win By Alignement")
 
     def message(self, msg):
@@ -509,6 +563,12 @@ class Gomoku():
                 self.window.blit(self.img_player_two, (elem[0] - 12, elem[1] - 12))
         pygame.display.flip()
 
+    def inc_turn(self):
+        self.turn += 1
+        if self.turn == 2:
+            self.turn = 0
+            self.nb_turn += 1
+
 class Player():
 
     def __init__(self, id, ai=False):
@@ -519,7 +579,7 @@ class Player():
         self.id = id
         self.check = 0
         self.last_pos = None
-
+        self.win = 0
 
 def start_game():
 
@@ -539,7 +599,6 @@ def start_game():
                 quit_game()
         if ai_mode and gomoku.current_player == 1:
             gomoku.ai_play()
-            #gomoku.display_player()
         gomoku.check_event()
         gomoku.display_player()
         gomoku.fill_background(nb_square)

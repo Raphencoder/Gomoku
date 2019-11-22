@@ -148,14 +148,18 @@ alignement = {
     (4, True, False):"four_sided",
     (4, False, True):"four_sided",
     (4, False, False):"four_block",
-    (5):"five"
+    (5, True, True):"five",
+    (5, False, True):"five",
+    (5, True, False):"five",
+    (5, True):"five",
+    (5, False):"five",
 }
 score = {
-    "one_free" : 5,
-    "one_sided" : 2,
-    "one_block" : 0,
+    "one_free" : 1,
+    "one_sided" : 5,
+    "one_block" : 3,
     "two_free" : 10,
-    "two_sided" : -5,
+    "two_sided" : -200,
     "two_block" : 0,
     "three_free" : 100,
     "three_sided" : 50,

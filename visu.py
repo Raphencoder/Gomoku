@@ -84,68 +84,148 @@ class Gomoku():
         else:
             self.current_player = 1
 
-    def is_free(self, x, y, coordonates):
+    def is_free_double(self, xy, coordonates):
         to_add_x = coordonates[1][0] - coordonates[0][0]
         to_add_y = coordonates[1][1] - coordonates[0][1]
-        print(to_add_x, to_add_y, coordonates)
+        x = xy[0]
+        y = xy[1]
         pos_x = x
         pos_y = y
-        count = 0
+        pos_x += to_add_x
+        pos_y += to_add_y
+        # print("check for this coordonates:", xy)
+        # print(pos_x, pos_y)
         try:
-            while self.coordinate[pos_x, pos_y] == -1:
-                pos_x += to_add_x
-                pos_y += to_add_y
+            if self.coordinate[pos_x, pos_y] == self.current_player and\
+                self.coordinate[pos_x + to_add_x, pos_y + to_add_y] == self.current_player and\
+                    self.coordinate[pos_x + 2*to_add_x, pos_y + 2*to_add_y] == -1:
+                # print("return True")
+                return True
         except KeyError:
+            # print("eror map return False")
             return False
         try:
-            while self.coordinate[pos_x, pos_y] == self.current_player:
-                pos_x += to_add_x
-                pos_y += to_add_y
-                count += 1
-                if count >= 3:
+            if self.coordinate[pos_x, pos_y] == self.current_player and\
+                self.coordinate[pos_x + to_add_x, pos_y + to_add_y] == -1:
+                pos_x += 2*to_add_x
+                pos_y += 2*to_add_y
+                # print("here we expect a current player after two bonds", pos_x, pos_y)
+                if self.coordinate[pos_x, pos_y] == self.current_player and\
+                    self.coordinate[pos_x + to_add_x, pos_y + to_add_y] == -1:
+                    # print("return Truee")
+                    return True
+                else:
+                    # print("return False")
                     return False
+            else:
+                # print("default return True")
+                return True
         except KeyError:
-            print("outside map")
-            print(pos_x, pos_y)
+            # print("eror map return Falsee")
             return False
-        if self.coordinate[pos_x, pos_y] == -1:
-            print("this is free")
-            return True
-        print("This is occupied")
-        return False
 
+    def is_free_one(self, xy, coordonates):
+        # print("-- into one --")
+        to_add_x = coordonates[1][0] - coordonates[0][0]
+        to_add_y = coordonates[1][1] - coordonates[0][1]
+        x = xy[0]
+        y = xy[1]
+        pos_x = x
+        pos_y = y
+        pos_x += 2*to_add_x
+        pos_y += 2*to_add_y
+        # print("check for this coordonates:", xy)
+        # print("toaddx, toadd_y:", to_add_x, to_add_y)
+        # print(pos_x, pos_y)
+        try:
+            if self.coordinate[pos_x, pos_y] == -1:
+                # print("return True")
+                return True
+            else: 
+                # print("return False")
+                return False
+        except KeyError:
+            # print("Outside map return False")
+            return False
+        
+    def is_free_oposite_one(self, xy, coordonates):
+        # print("-- oposite --")
+        to_add_x = coordonates[1][0] - coordonates[0][0]
+        to_add_y = coordonates[1][1] - coordonates[0][1]
+        x = xy[0]
+        y = xy[1]
+        pos_x = x
+        pos_y = y
+        pos_x += to_add_x
+        pos_y += to_add_y
+        # print("check for this coordonates:", xy)
+        # print("toaddx, toadd_y:", to_add_x, to_add_y)
+        # print(pos_x, pos_y)
+        try:
+            if self.coordinate[pos_x, pos_y] == self.current_player:
+                # print("return True")
+                return True
+            else: 
+                # print("return False")
+                return False
+        except KeyError:
+            # print("Outside map return False")
+            return False
+    
+    def is_free_oposite_double(self, xy, coordonates):
+        # print("-- oposite --")
+        to_add_x = coordonates[1][0] - coordonates[0][0]
+        to_add_y = coordonates[1][1] - coordonates[0][1]
+        x = xy[0]
+        y = xy[1]
+        pos_x = x
+        pos_y = y
+        pos_x += to_add_x
+        pos_y += to_add_y
+        # print("check for this coordonates:", xy)
+        # print("toaddx, toadd_y:", to_add_x, to_add_y)
+        # print(pos_x, pos_y)
+        try:
+            if self.coordinate[pos_x, pos_y] == -1:
+                # print("return True")
+                return True
+            else: 
+                # print("return False")
+                return False
+        except KeyError:
+            # print("Outside map return False")
+            return False
 
     def can_place(self, x, y):
         if ((x,) + (y,) + (1,)) in self.pos_player or ((x,) + (y,) + (2,)) in self.pos_player:
             return False
         position = (int((x - 30)/38), int((y - 30)/38))
         for key, value in new_rules.items():
-            if (key in self.ally and self.ally[key] >= 2 and self.is_free(position[0], position[1], cord[key]))\
-                 or (key in self.ally and oposite[key] in self.ally and\
-                        self.is_free(position[0], position[1], cord[key]) and\
-                        self.is_free(position[0], position[1], cord[oposite[key]])):
-                print("-----------FP For this key {} it is true and free".format(key))
-                for pos in value:
-                    if (key in self.ally and self.ally[key] >= 3) or (oposite[key] in self.ally and\
-                        key in self.ally and self.ally[key] + self.ally[oposite[key]] >= 3):
-                        print("More than three")
-                        return True
-                    if (pos in self.ally and self.ally[pos] >= 3) or (oposite[pos] in self.ally and\
-                        pos in self.ally and self.ally[pos] + self.ally[oposite[pos]] >= 3):
-                        print("More than three")
-                        return True
-                    print("SP For this key {}".format(pos))
-                    if pos in self.ally and self.ally[pos] >= 2 and self.is_free(position[0], position[1], cord[pos])\
-                        and self.is_free(position[0], position[1], cord[oposite[pos]])\
-                        and self.is_free(position[0], position[1], cord[oposite[key]]):
-                        print("Can't place")
-                        return False
-                    if pos in self.ally and oposite[pos] in self.ally and\
-                        self.is_free(position[0], position[1], cord[pos]) and\
-                        self.is_free(position[0], position[1], cord[oposite[pos]]):
-                            print("Catn place too")
-                            return False
-        print("ok to place")
+            if key in self.ally:
+                if self.ally[key] == 1 and self.is_free_one(position, cord[key]) and \
+                oposite[key] in self.ally and self.ally[oposite[key]] == 1 and self.is_free_oposite_one(position, cord[oposite[key]]):
+                    print("The first one "+key+" is free check the other")
+                    for pos in value:
+                        if pos in self.ally:
+                            print("The other is "+pos+"")
+                            if self.ally[pos] == 1 and self.is_free_one(position, cord[pos]) and \
+                            oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_oposite_one(position, cord[oposite[pos]]):
+                                return False
+                            if self.ally[pos] == 2 and self.is_free_double(position, cord[pos]) and\
+                            oposite[pos] not in self.ally and self.is_free_oposite_double(position, cord[oposite[pos]]):
+                                return False
+                if self.ally[key] == 2 and self.is_free_double(position, cord[key]) and \
+                oposite[key] not in self.ally and self.is_free_oposite_double(position, cord[oposite[key]]):
+                    print("The first one "+key+" is free check the other")
+                    for pos in value:
+                        if pos in self.ally:
+                            print("The other is "+pos+"")
+                            if self.ally[pos] == 1 and self.is_free_one(position, cord[pos]) and \
+                            oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_oposite_double(position, cord[oposite[pos]]):
+                                return False
+                            if self.ally[pos] == 2 and self.is_free_double(position, cord[pos]) and\
+                            oposite[pos] not in self.ally and self.is_free_oposite_double(position, cord[oposite[pos]]):
+                                return False
         return True
 
     def check_event(self):
@@ -586,7 +666,7 @@ def start_game():
     pygame.init()
     ai_mode = game_intro(pygame.display.set_mode((800, 800)))
     pygame.quit()
-    nb_square = 19
+    nb_square = 18
     gomoku = Gomoku(ai_mode)
 
     gomoku.coordinate = get_coordinate(nb_square)

@@ -151,6 +151,7 @@ alignement = {
     (5, True, True):"five",
     (5, False, True):"five",
     (5, True, False):"five",
+    (5, False, False):"five",
     (5, True):"five",
     (5, False):"five",
 }
@@ -164,8 +165,8 @@ score = {
     "three_free" : 100,
     "three_sided" : 50,
     "three_block" : 20,
-    "four_free" : 2000,
-    "four_sided" : 3000,
+    "four_free" : 3000,
+    "four_sided" : 2000,
     "four_block" : 150,
     "five" : 5000,
     }

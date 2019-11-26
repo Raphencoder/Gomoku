@@ -16,8 +16,8 @@ TODO :
 yellow = (243, 210, 132)
 
 notcur_p = lambda x, y , z : y if x != y else z
-conv = lambda x: (x - 30)/38
-r_conv = lambda x: x * 38 + 30
+r_conv = lambda x, y : (x * 40 + 30, y * 40 + 30)
+conv = lambda x, y: (int((x - 30)/40), int((y - 30)/40))
 
 def in_inter(pos, inters):
     """
@@ -141,13 +141,13 @@ class Gomoku():
             if self.coordinate[pos_x, pos_y] == -1:
                 # print("return True")
                 return True
-            else: 
+            else:
                 # print("return False")
                 return False
         except KeyError:
             # print("Outside map return False")
             return False
-        
+
     def is_free_oposite_one(self, xy, coordonates):
         # print("-- oposite --")
         to_add_x = coordonates[1][0] - coordonates[0][0]
@@ -165,13 +165,13 @@ class Gomoku():
             if self.coordinate[pos_x, pos_y] == self.current_player:
                 # print("return True")
                 return True
-            else: 
+            else:
                 # print("return False")
                 return False
         except KeyError:
             # print("Outside map return False")
             return False
-    
+
     def is_free_oposite_double(self, xy, coordonates):
         # print("-- oposite --")
         to_add_x = coordonates[1][0] - coordonates[0][0]
@@ -189,7 +189,7 @@ class Gomoku():
             if self.coordinate[pos_x, pos_y] == -1:
                 # print("return True")
                 return True
-            else: 
+            else:
                 # print("return False")
                 return False
         except KeyError:
@@ -199,7 +199,7 @@ class Gomoku():
     def can_place(self, x, y):
         if ((x,) + (y,) + (1,)) in self.pos_player or ((x,) + (y,) + (2,)) in self.pos_player:
             return False
-        position = (int((x - 30)/38), int((y - 30)/38))
+        position = conv(x, y)
         for key, value in new_rules.items():
             if key in self.ally:
                 if self.ally[key] == 1 and self.is_free_one(position, cord[key]) and \
@@ -234,11 +234,10 @@ class Gomoku():
                 pos = pygame.mouse.get_pos()
                 x_player, y_player = in_inter(pos, self.inters)
                 if x_player != 0 and y_player != 0:
-                    pos = (int((x_player - 30)/38), int((y_player - 30)/38))
+                    pos = conv(x_player, y_player)
                     self.map_players(pos[0], pos[1])
                     if self.can_place(x_player, y_player):
                         self.pos_player.append(((x_player,) + (y_player,) + (self.current_player,)))
-                        pos = (int((x_player - 30)/38), int((y_player - 30)/38))
                         self.coordinate[pos] = self.current_player
                         self.check_hor_capture(pos[0], pos[1])
                         if self.current_player == 1:
@@ -262,43 +261,57 @@ class Gomoku():
 
     def ai_play(self):
         if not self.j1.win:
-            if self.nb_turn < 3:
+            if self.nb_turn < 2:
                 self.opening_books()
             else:
-                maxs = -10000
-                play = None
-                pos = self.check_board()
-                for each in pos:
-                    s = self.evaluate(each)
-                    if s and s[0] > maxs:
-                        maxs = s[0]
-                        play = s[1]
-                print(maxs)
-                self.pos_player.append(play)
-                self.time_clock.tick()
-                self.j1.last_pos = (conv(play[0]), conv(play[1]))
-                self.coordinate[self.j1.last_pos] = 1
-                self.inc_turn()
-                for each in dir:
-                    self.j1.align = self.check_align(self.j1.last_pos, 1, each, self.j1.align)
-                print(self.j1.align, self.j1.last_pos)
-                if self.nb_turn >= 4:
-                    self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
-            self.change_player()
+                self.minimax()
 
-    def evaluate(self, pos):
+    def minimax(self):
+        maxs = -10000
+        moves = self.check_board()
+        for each in moves:
+            s = self.max_ai(each)
+            print(s)
+            if s and s[0] > maxs:
+                maxs = s[0]
+                pos = s[1]
+        print(maxs, "max final score")
+        #self.min_ai(pos)
+        self.pos_player.append(pos)
+        self.time_clock.tick()
+        self.j1.last_pos = conv(pos[0], pos[1])
+        self.coordinate[self.j1.last_pos] = 1
+        self.map_players(self.j1.last_pos[0], self.j1.last_pos[1])
+        self.check_hor_capture(self.j1.last_pos[0], self.j1.last_pos[1])
+        self.inc_turn()
+        for each in dir:
+            self.j1.align = self.check_align(self.j1.last_pos, 1, each, self.j1.align)
+        print(self.j1.align, self.j1.last_pos)
+        if self.nb_turn >= 4:
+            self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
+        self.change_player()
+
+
+    def max_ai(self, pos):
         """return total value of pos (hor+ver+dia_l+dia_r)"""
         total = [0]
-        if self.can_place(r_conv(pos[0]), r_conv(pos[1])):
+        r_pos = r_conv(pos[0], pos[1])
+        if self.can_place(r_pos[0], r_pos[1]):
             for each in dir:
                 self.j1.align = self.check_align(pos, 1, each, self.j1.align)
             val_list = list(self.j1.align.values())
             for each in val_list:
-                print(score[alignement[tuple(each)]])
                 total[0] += score[alignement[tuple(each)]]
-                total.append((r_conv(pos[0]), r_conv(pos[1]), 1))
+            total.append((r_pos[0], r_pos[1], 1))
+            self.map_players(pos[0], pos[1])
+            self.check_hor_capture(pos[0], pos[1], False)
+            total[0] += self.j1.score
+            self.j1.score = 0
             return(total)
         return(list())
+
+    def min_ai(self, pos):
+        pass
 
     def check_board(self):
         pos = list()
@@ -310,42 +323,54 @@ class Gomoku():
         for dir, value in self.j1.align.items():
             if value == 5:
                 continue
-                for i in range(4, 0, -1):
-                    pos = self.check_threat(key, value, i, pos, self.j1.last_pos)
-        return(pos)
+            for i in range(4, 0, -1):
+                pos = self.check_threat(dir, value, i, pos, self.j1.last_pos)
+        listpos = list(dict.fromkeys(pos))
+        return(listpos)
 
     def check_threat(self, dir, value, i, pos, last_pos):
         if value[0] == i:
-            if dir == "hor":
-                pos.append((last_pos[0] + i , last_pos[1]))
-                pos.append((last_pos[0] - i , last_pos[1]))
-            elif dir == "ver":
-                pos.append((last_pos[0], last_pos[1] + i))
-                pos.append((last_pos[0], last_pos[1] - i))
-            elif dir == "dia_r":
-                pos.append((last_pos[0] + i , last_pos[1] - i))
-                pos.append((last_pos[0] - i , last_pos[1] + i))
-            elif dir == "dia_l":
-                pos.append((last_pos[0] + i , last_pos[1] + i))
-                pos.append((last_pos[0] - i , last_pos[1] - i))
+            while i > 0:
+                if dir == "hor":
+                    pos.append((last_pos[0] + i , last_pos[1]))
+                    pos.append((last_pos[0] - i , last_pos[1]))
+                elif dir == "ver":
+                    pos.append((last_pos[0], last_pos[1] + i))
+                    pos.append((last_pos[0], last_pos[1] - i))
+                elif dir == "dia_r":
+                    pos.append((last_pos[0] + i , last_pos[1] - i))
+                    pos.append((last_pos[0] - i , last_pos[1] + i))
+                elif dir == "dia_l":
+                    pos.append((last_pos[0] + i , last_pos[1] + i))
+                    pos.append((last_pos[0] - i , last_pos[1] - i))
+                i -= 1
+        for each in self.coordinate:
+            for coor in pos:
+                if coor in self.coordinate.keys() and self.coordinate[coor] != -1:
+                    pos.remove(coor)
         return(pos)
 
     def opening_books(self):
         if not self.pos_player:
-            self.pos_player.append((r_conv(9), r_conv(9), 1))
+            pos = r_conv(9,9)
+            self.pos_player.append((pos[0], pos[1], 1))
             self.coordinate[(9,9)] = 1
             self.inc_turn()
+            self.change_player()
         else:
             x = random.randint(-1,1)
-            l_play = [conv(self.pos_player[-1][0]) + x, conv(self.pos_player[-1][1]) + x]
-            while not self.can_place(r_conv(l_play[0]), r_conv(l_play[1])):
-                l_play[0] = l_play[0] + random.randint(-1,1)
-                l_play[1] = l_play[1] + random.randint(-1,1)
-            self.pos_player.append((r_conv(l_play[0]), r_conv(l_play[1]), 1))
-            self.j1.last_pos = (l_play[0], l_play[1])
-            self.coordinate[self.j1.last_pos] = 1
+            l_play = conv(self.pos_player[-1][0] + x, self.pos_player[-1][1] + x)
+            r_play = r_conv(l_play[0],l_play[1])
+            while not self.can_place(r_play[0], r_play[1]):
+                r_play = r_conv(l_play[0] + random.randint(-1,1), l_play[1] + random.randint(-1,1))
+            self.pos_player.append((r_play[0], r_play[1], 1))
+            print(self.pos_player)
+            l_play = conv(r_play[0], r_play[1])
+            self.j1.last_pos = l_play
+            self.coordinate[l_play] = 1
+            self.change_player()
             self.inc_turn()
-            self.time_clock.tick()
+        self.time_clock.tick()
 
     def check_align(self, coor, player, dir, n):
         """return each alignement direction for current coordinate"""
@@ -470,7 +495,7 @@ class Gomoku():
                 to_add_x += 1
             to_add_y += 1
 
-    def check_hor_capture(self, x, y):
+    def check_hor_capture(self, x, y, real=True):
         # Take the values where they were 2 enemys on the row
         to_capture = [key for key, value in self.enemy.items() if value == 2]
         to_erase = []
@@ -483,8 +508,13 @@ class Gomoku():
                     continue
                 sup1 = [x + cord[elem][0][0], y + cord[elem][0][1]]
                 sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]
-                if pos != -1 and pos == self.current_player:
+                if real and pos != -1 and pos == self.current_player:
                     self.capture(sup1, sup2, to_erase)
+                elif not real and pos != -1 and pos == self.current_player:
+                    if self.current_player == 1 and self.j1.capture < 4:
+                        self.j1.score += 500
+                    elif self.current_player == 1 and self.j1.capture == 4:
+                        self.j2.score += 10000
         for each in to_erase:
             self.pos_player.remove(each)
         del to_erase[:]
@@ -493,8 +523,8 @@ class Gomoku():
         """
         need a few change when class Player will be implemented
         """
-        newpos1 = [float(i * 38 + 30)  for i in pos1]
-        newpos2 = [float(i * 38 + 30) for i in pos2]
+        newpos1 = [(i * 40 + 30)  for i in pos1]
+        newpos2 = [(i * 40 + 30) for i in pos2]
         ncur = notcur_p(self.current_player, self.j1.id, self.j2.id)
         newpos1.append(ncur)
         newpos2.append(ncur)
@@ -568,16 +598,16 @@ class Gomoku():
         """undo function TODO check when ai_mode implemeted"""
         if self.ai_mode:
             r = self.pos_player.pop()
-            self.coordinate[(int((r[0] - 30)/38), int((r[0] - 30)/38))] = -1
+            self.coordinate[conv(r[0], r[1])] = -1
             self.restore(r)
             r1 = self.pos_player.pop()
-            self.coordinate[(int((r1[0] - 30)/38), int((r1[1] - 30)/38))] = -1
+            self.coordinate[conv(r1[0], r1[1])] = -1
             self.restore(r1)
             self.nb_turn -= 1
             time.sleep(0.2)
         else:
             r = self.pos_player.pop()
-            self.coordinate[(int((r[0] - 30)/38), int((r[1] - 30)/38))] = -1
+            self.coordinate[conv(r[0], r[1])] = -1
             self.restore(r)
             if self.current_player == 1:
                 self.current_player = 2
@@ -594,7 +624,7 @@ class Gomoku():
                     order = sorted(coor, key=lambda i: i[1])
                     print(order)
                     for each in coor:
-                        self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
+                        self.coordinate[conv(each[0][0], each[0][1])] = each[0][2]
                     for each in order:
                         self.pos_player.insert(each[1], each[0])
                         i += 1
@@ -607,7 +637,7 @@ class Gomoku():
                     order = sorted(coor, key=lambda i: i[1])
                     print(order)
                     for each in coor:
-                        self.coordinate[(int((each[0][0] - 30)/38), int(each[0][1] - 30)/38)] = each[0][2]
+                        self.coordinate[conv(each[0][0] , each[0][1])] = each[0][2]
                     for each in order:
                         self.pos_player.insert(each[1], each[0])
                         i += 1
@@ -660,6 +690,7 @@ class Player():
         self.check = 0
         self.last_pos = None
         self.win = 0
+        self.score = 0
 
 def start_game():
 

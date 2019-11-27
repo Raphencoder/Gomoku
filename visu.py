@@ -267,12 +267,8 @@ class Gomoku():
                 self.minimax()
 
     def minimax(self):
-        s = self.max_ai(self.check_board(), 0)
-        print(s)
-        if s and s[0] > maxs:
-            maxs = s[0]
-            pos = s[1]
-        print(maxs, "max final score")
+        s = self.max_ai(self.check_board(), 0, 5)
+        print(s, "score of move")
         self.pos_player.append(pos)
         self.time_clock.tick()
         self.j1.last_pos = conv(pos[0], pos[1])
@@ -295,6 +291,9 @@ class Gomoku():
             return(value)
         elif value <= -7500:
             return(value)
+        elif depth = 0
+            return(value)
+
         total = [0]
         for pos in list_pos:
             r_pos = r_conv(pos[0], pos[1])
@@ -311,19 +310,20 @@ class Gomoku():
                 self.coordinate[(pos[0], pos[1])] = 1
                 self.j1.score = 0
                 self.j1.last_pos = pos
-                m = self.min_ai(self.check_board(), total[0])
+                m = self.min_ai(self.check_board(), total[0], depth)
                 if m > max:
                     max = m
         self.coordinate[(pos[0], pos[1])] = 1
         return(max)
 
-
     def min_ai(self, list_pos, value, depth):
         min = 1000000
         if value >= 7500:
-            return(pos, value)
+            return(value)
         elif value <= -7500:
-            return(pos, value)
+            return(value)
+        elif depth == 0:
+            return(value)
 
         total = [0]
         for pos in list_pos:
@@ -341,9 +341,9 @@ class Gomoku():
                 total[0] += self.j2.score
                 self.j2.score = 0
                 self.j2.last_pos = pos
-                m = self.max_ai(pos, total[0])
-                if m < min:
-                    min = m
+                total[0] = self.max_ai(self.check_board(), total[0], depth - 1)
+                if total[0] < min:
+                    min = total[0]
         self.coordinate[(pos[0], pos[1])] = -1
         return(min)
 

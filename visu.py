@@ -267,16 +267,12 @@ class Gomoku():
                 self.minimax()
 
     def minimax(self):
-        maxs = -10000
-        moves = self.check_board()
-        for each in moves:
-            s = self.max_ai(each)
-            print(s)
-            if s and s[0] > maxs:
-                maxs = s[0]
-                pos = s[1]
+        s = self.max_ai(self.check_board(), 0)
+        print(s)
+        if s and s[0] > maxs:
+            maxs = s[0]
+            pos = s[1]
         print(maxs, "max final score")
-        #self.min_ai(pos)
         self.pos_player.append(pos)
         self.time_clock.tick()
         self.j1.last_pos = conv(pos[0], pos[1])
@@ -292,26 +288,64 @@ class Gomoku():
         self.change_player()
 
 
-    def max_ai(self, pos):
+    def max_ai(self, list_pos, value, depth):
         """return total value of pos (hor+ver+dia_l+dia_r)"""
+        max = -1000000
+        if value >= 7500:
+            return(value)
+        elif value <= -7500:
+            return(value)
         total = [0]
-        r_pos = r_conv(pos[0], pos[1])
-        if self.can_place(r_pos[0], r_pos[1]):
-            for each in dir:
-                self.j1.align = self.check_align(pos, 1, each, self.j1.align)
-            val_list = list(self.j1.align.values())
-            for each in val_list:
-                total[0] += score[alignement[tuple(each)]]
-            total.append((r_pos[0], r_pos[1], 1))
-            self.map_players(pos[0], pos[1])
-            self.check_hor_capture(pos[0], pos[1], False)
-            total[0] += self.j1.score
-            self.j1.score = 0
-            return(total)
-        return(list())
+        for pos in list_pos:
+            r_pos = r_conv(pos[0], pos[1])
+            if self.can_place(r_pos[0], r_pos[1]):
+                for each in dir:
+                    self.j1.align = self.check_align(pos, 1, each, self.j1.align)
+                val_list = list(self.j1.align.values())
+                for each in val_list:
+                    total[0] += score[alignement[tuple(each)]]
+                total.append((r_pos[0], r_pos[1], 1))
+                self.map_players(pos[0], pos[1])
+                self.check_hor_capture(pos[0], pos[1], False)
+                total[0] += self.j1.score
+                self.coordinate[(pos[0], pos[1])] = 1
+                self.j1.score = 0
+                self.j1.last_pos = pos
+                m = self.min_ai(self.check_board(), total[0])
+                if m > max:
+                    max = m
+        self.coordinate[(pos[0], pos[1])] = 1
+        return(max)
 
-    def min_ai(self, pos):
-        pass
+
+    def min_ai(self, list_pos, value, depth):
+        min = 1000000
+        if value >= 7500:
+            return(pos, value)
+        elif value <= -7500:
+            return(pos, value)
+
+        total = [0]
+        for pos in list_pos:
+            r_pos = r_conv(pos[0], pos[1])
+            if self.can_place(r_pos[0], r_pos[1]):
+                for each in dir:
+                    self.j2.align = self.check_align(pos, 1, each, self.j1.align)
+                val_list = list(self.j2.align.values())
+                for each in val_list:
+                    total[0] += score[alignement[tuple(each)]]
+                total.append((r_pos[0], r_pos[1], 1))
+                self.map_players(pos[0], pos[1])
+                self.check_hor_capture(pos[0], pos[1], False)
+                self.coordinate[(pos[0], pos[1])] = 2
+                total[0] += self.j2.score
+                self.j2.score = 0
+                self.j2.last_pos = pos
+                m = self.max_ai(pos, total[0])
+                if m < min:
+                    min = m
+        self.coordinate[(pos[0], pos[1])] = -1
+        return(min)
 
     def check_board(self):
         pos = list()

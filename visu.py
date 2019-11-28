@@ -119,7 +119,7 @@ class Gomoku():
                     return False
             else:
                 # print("default return True")
-                return True
+                return False
         except KeyError:
             # print("eror map return Falsee")
             return False
@@ -203,13 +203,13 @@ class Gomoku():
         for key, value in new_rules.items():
             if key in self.ally:
                 if self.ally[key] == 1 and self.is_free_one(position, cord[key]) and \
-                oposite[key] in self.ally and self.ally[oposite[key]] == 1 and self.is_free_oposite_one(position, cord[oposite[key]]):
+                oposite[key] in self.ally and self.ally[oposite[key]] == 1 and self.is_free_one(position, cord[oposite[key]]):
                     print("The first one "+key+" is free check the other")
                     for pos in value:
                         if pos in self.ally:
                             print("The other is "+pos+"")
                             if self.ally[pos] == 1 and self.is_free_one(position, cord[pos]) and \
-                            oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_oposite_one(position, cord[oposite[pos]]):
+                            oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_one(position, cord[oposite[pos]]):
                                 return False
                             if self.ally[pos] == 2 and self.is_free_double(position, cord[pos]) and\
                             oposite[pos] not in self.ally and self.is_free_oposite_double(position, cord[oposite[pos]]):
@@ -221,7 +221,7 @@ class Gomoku():
                         if pos in self.ally:
                             print("The other is "+pos+"")
                             if self.ally[pos] == 1 and self.is_free_one(position, cord[pos]) and \
-                            oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_oposite_double(position, cord[oposite[pos]]):
+                            oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_one(position, cord[oposite[pos]]):
                                 return False
                             if self.ally[pos] == 2 and self.is_free_double(position, cord[pos]) and\
                             oposite[pos] not in self.ally and self.is_free_oposite_double(position, cord[oposite[pos]]):

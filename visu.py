@@ -267,11 +267,18 @@ class Gomoku():
                 self.minimax()
 
     def minimax(self):
-        s = self.max_ai(self.check_board(), 0, 5)
-        print(s, "score of move")
-        self.pos_player.append(pos)
+        list_pos = self.check_board()
+        r = []
+        r.append(list_pos.pop())
+        tmp = self.max_ai(r, [0, r[0]], 3)
+        for pos in list_pos:
+            s = self.max_ai(list_pos, tmp, 3)
+            if s[0] > tmp[0]:
+                tmp = s
+        print(tmp, "score of move")
+        self.pos_player.append(tmp[1])
         self.time_clock.tick()
-        self.j1.last_pos = conv(pos[0], pos[1])
+        self.j1.last_pos = conv(tmp[1][0], tmp[1][1])
         self.coordinate[self.j1.last_pos] = 1
         self.map_players(self.j1.last_pos[0], self.j1.last_pos[1])
         self.check_hor_capture(self.j1.last_pos[0], self.j1.last_pos[1])
@@ -279,72 +286,74 @@ class Gomoku():
         for each in dir:
             self.j1.align = self.check_align(self.j1.last_pos, 1, each, self.j1.align)
         print(self.j1.align, self.j1.last_pos)
+        for key, value in self.coordinate.items():
+            if value == 1:
+                print(key)
         if self.nb_turn >= 4:
             self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
         self.change_player()
 
+    def evaluate(self, pos, player):
+        total = [0]
+        r_pos = r_conv(pos[0], pos[1])
+        if self.can_place(r_pos[0], r_pos[1]):
+            for each in dir:
+                player.align = self.check_align(pos, player.id, each, player.align)
+            val_list = list(player.align.values())
+            for each in val_list:
+                total[0] += score[alignement[tuple(each)]]
+            total.append((r_pos[0], r_pos[1], player.id))
+            self.map_players(pos[0], pos[1])
+            self.check_hor_capture(pos[0], pos[1], False)
+            total[0] += player.score
+            player.score = 0
+            return(total)
+        return (None)
 
     def max_ai(self, list_pos, value, depth):
         """return total value of pos (hor+ver+dia_l+dia_r)"""
         max = -1000000
-        if value >= 7500:
+        if value[0] >= 7500:
             return(value)
-        elif value <= -7500:
+        elif value[0] <= -7500:
             return(value)
-        elif depth = 0
+        elif depth == 0:
+            self.coordinate[value[1][0], value[1][1]] = -1
             return(value)
 
-        total = [0]
         for pos in list_pos:
-            r_pos = r_conv(pos[0], pos[1])
-            if self.can_place(r_pos[0], r_pos[1]):
-                for each in dir:
-                    self.j1.align = self.check_align(pos, 1, each, self.j1.align)
-                val_list = list(self.j1.align.values())
-                for each in val_list:
-                    total[0] += score[alignement[tuple(each)]]
-                total.append((r_pos[0], r_pos[1], 1))
-                self.map_players(pos[0], pos[1])
-                self.check_hor_capture(pos[0], pos[1], False)
-                total[0] += self.j1.score
-                self.coordinate[(pos[0], pos[1])] = 1
-                self.j1.score = 0
+            total = self.evaluate(pos, self.j1)
+            if total and total[0] > value[0]:
+                value = total
                 self.j1.last_pos = pos
-                m = self.min_ai(self.check_board(), total[0], depth)
-                if m > max:
-                    max = m
-        self.coordinate[(pos[0], pos[1])] = 1
+        self.coordinate[self.j1.last_pos] = 1
+        m = self.min_ai(self.check_board(), value, depth -1)
+        if m[0] > max:
+            max = m
+        self.coordinate[self.j1.last_pos] = -1
         return(max)
 
     def min_ai(self, list_pos, value, depth):
         min = 1000000
-        if value >= 7500:
+        if value[0] >= 7500:
             return(value)
-        elif value <= -7500:
+        elif value[0] <= -7500:
             return(value)
         elif depth == 0:
+            print("depth atteinte")
+            self.coordinate[value[1][0], value[1][1]] = -1
             return(value)
 
-        total = [0]
         for pos in list_pos:
-            r_pos = r_conv(pos[0], pos[1])
-            if self.can_place(r_pos[0], r_pos[1]):
-                for each in dir:
-                    self.j2.align = self.check_align(pos, 1, each, self.j1.align)
-                val_list = list(self.j2.align.values())
-                for each in val_list:
-                    total[0] += score[alignement[tuple(each)]]
-                total.append((r_pos[0], r_pos[1], 1))
-                self.map_players(pos[0], pos[1])
-                self.check_hor_capture(pos[0], pos[1], False)
-                self.coordinate[(pos[0], pos[1])] = 2
-                total[0] += self.j2.score
-                self.j2.score = 0
+            total = self.evaluate(pos, self.j2)
+            if total and total[0] < value[0]:
+                value = total
                 self.j2.last_pos = pos
-                total[0] = self.max_ai(self.check_board(), total[0], depth - 1)
-                if total[0] < min:
-                    min = total[0]
-        self.coordinate[(pos[0], pos[1])] = -1
+        self.coordinate[self.j2.last_pos] = 2
+        m = self.max_ai(self.check_board(), value, depth - 1)
+        if m[0] < min:
+            min = m
+        self.coordinate[self.j2.last_pos] = -1
         return(min)
 
     def check_board(self):
@@ -360,6 +369,7 @@ class Gomoku():
             for i in range(4, 0, -1):
                 pos = self.check_threat(dir, value, i, pos, self.j1.last_pos)
         listpos = list(dict.fromkeys(pos))
+        print(listpos, "list_pos")
         return(listpos)
 
     def check_threat(self, dir, value, i, pos, last_pos):
@@ -548,6 +558,10 @@ class Gomoku():
                     if self.current_player == 1 and self.j1.capture < 4:
                         self.j1.score += 500
                     elif self.current_player == 1 and self.j1.capture == 4:
+                        self.j1.score += 10000
+                    elif self.current_player == 2 and self.j2.capture < 4:
+                        self.j2.score += 500
+                    elif self.current_player == 2 and self.j1.capture == 4:
                         self.j2.score += 10000
         for each in to_erase:
             self.pos_player.remove(each)

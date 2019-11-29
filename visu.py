@@ -294,31 +294,35 @@ class Gomoku():
         self.change_player()
 
     def evaluate(self, pos, player):
-        total = [0]
+        total = [0, 0]
         r_pos = r_conv(pos[0], pos[1])
         if self.can_place(r_pos[0], r_pos[1]):
             for each in dir:
                 player.align = self.check_align(pos, player.id, each, player.align)
             val_list = list(player.align.values())
             for each in val_list:
-                total[0] += score[alignement[tuple(each)]]
+                if player.id == 1:
+                    total[0] += score[alignement[tuple(each)]]
+                else:
+                    total[0] -= score[alignement[tuple(each)]]
             total.append((r_pos[0], r_pos[1], player.id))
             self.map_players(pos[0], pos[1])
             self.check_hor_capture(pos[0], pos[1], False)
             total[0] += player.score
             player.score = 0
             return(total)
-        return (None)
+        else:
+            return (None)
 
     def max_ai(self, list_pos, value, depth):
         """return total value of pos (hor+ver+dia_l+dia_r)"""
         max = -1000000
+        tmp_pos = None
         if value[0] >= 7500:
             return(value)
         elif value[0] <= -7500:
             return(value)
         elif depth == 0:
-            self.coordinate[value[1][0], value[1][1]] = -1
             return(value)
 
         for pos in list_pos:
@@ -327,21 +331,25 @@ class Gomoku():
                 value = total
                 self.j1.last_pos = pos
         self.coordinate[self.j1.last_pos] = 1
+        tmp_pos = self.j1.last_pos
+        print(tmp_pos, "<= tmp", value[0], "<= score")
         m = self.min_ai(self.check_board(), value, depth -1)
         if m[0] > max:
             max = m
-        self.coordinate[self.j1.last_pos] = -1
+        self.coordinate[tmp_pos] = -1
+        r_pos = r_conv(tmp_pos[0], tmp_pos[1])
+        max[1] = (r_pos[0], r_pos[1], 1)
         return(max)
 
     def min_ai(self, list_pos, value, depth):
         min = 1000000
+        tmp_pos = None
         if value[0] >= 7500:
             return(value)
         elif value[0] <= -7500:
             return(value)
         elif depth == 0:
             print("depth atteinte")
-            self.coordinate[value[1][0], value[1][1]] = -1
             return(value)
 
         for pos in list_pos:
@@ -350,10 +358,13 @@ class Gomoku():
                 value = total
                 self.j2.last_pos = pos
         self.coordinate[self.j2.last_pos] = 2
+        tmp_pos = self.j2.last_pos
         m = self.max_ai(self.check_board(), value, depth - 1)
         if m[0] < min:
             min = m
-        self.coordinate[self.j2.last_pos] = -1
+        self.coordinate[tmp_pos] = -1
+        r_pos = r_conv(tmp_pos[0], tmp_pos[1])
+        min[1] = (r_pos[0], r_pos[1], 2)
         return(min)
 
     def check_board(self):
@@ -560,9 +571,9 @@ class Gomoku():
                     elif self.current_player == 1 and self.j1.capture == 4:
                         self.j1.score += 10000
                     elif self.current_player == 2 and self.j2.capture < 4:
-                        self.j2.score += 500
+                        self.j2.score -= 500
                     elif self.current_player == 2 and self.j1.capture == 4:
-                        self.j2.score += 10000
+                        self.j2.score -= 10000
         for each in to_erase:
             self.pos_player.remove(each)
         del to_erase[:]

@@ -273,7 +273,7 @@ class Gomoku():
         """
         list_pos = self.check_board()
         print(list_pos, "list_pos")
-        tmp = -666666
+        tmp = -666666 # need a negative reference value that can't be reached to start max
         for x in list_pos:
             value, coord = self.max_ai(list_pos, tmp, 3)
             if value > tmp:
@@ -284,7 +284,10 @@ class Gomoku():
         self.aftermath(pos)
 
     def aftermath(self, pos):
-        """ do all the necessary update of all the variable after minimax"""
+        """
+        do all the necessary update of all the variable after minimax
+        bug : sometimes checkmate doesn't trigger   
+        """
         r_coord = r_conv(pos[0], pos[1])
         self.pos_player.append((r_coord[0], r_coord[1], 1))
         self.j1.last_pos = pos
@@ -324,9 +327,10 @@ class Gomoku():
             return (None)
 
     def max_ai(self, list_pos, value, depth):
-        """recursive function which end when value or depht is reached
+        """
+        recursive function which end when value or depht is reached
         max represent IA move , min the player, max seek the best move for IA
-        from a list of position obtained form check_board function (only heuristic for now)
+        from a list of position obtained from check_board function (only heuristic for now)
         It will evaluate each pos then call min to simulate the player move until
         a move endgame has been reached or the depht is == 0
         return a score and pos
@@ -338,10 +342,13 @@ class Gomoku():
             will needs to play capture to win
             *need to implement alpha beta pruning
             -bug: when min return an ending move max will return a position already occupied
-            -bug: sometimes return a position not from the starting list
+            -bug: sometimes max return a position not from the starting list
+            (may need to change list_pos to a dict)
         """
+
         max = -1000000
         tmp_pos = None
+        #condition to end recursive
         if value >= 7500:
             return(value, self.j1.last_pos)
         elif value <= -7500 and value != -666666:
@@ -358,6 +365,7 @@ class Gomoku():
         tmp_pos = self.j1.last_pos
         print(tmp_pos, "<= tmp", value, "<= score", "MAX")
         value, pos = self.min_ai(self.check_board(), value, depth -1)
+        #end of recursion
         if value > max:
             max = value
         self.coordinate[tmp_pos] = -1
@@ -385,6 +393,7 @@ class Gomoku():
         tmp_pos = self.j2.last_pos
         print(tmp_pos, "<= tmp", value, "<= score", "MIN")
         value, pos = self.max_ai(self.check_board(), value, depth - 1)
+        #end of recursion
         if value < min:
             min = value
         self.coordinate[tmp_pos] = -1

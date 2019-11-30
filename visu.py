@@ -181,7 +181,7 @@ class Gomoku():
             if key in self.ally:
                 if self.ally[key] == 1 and self.is_free_one(position, cord[key]) and \
                 oposite[key] in self.ally and self.ally[oposite[key]] == 1 and self.is_free_one(position, cord[oposite[key]]):
-                    print("The first one "+key+" is free check the other")
+                    #print("The first one "+key+" is free check the other")
                     for pos in value:
                         if pos in self.ally:
                             print("The other is "+pos+"")
@@ -193,7 +193,7 @@ class Gomoku():
                                 return False
                 if self.ally[key] == 2 and self.is_free_double(position, cord[key]) and \
                 oposite[key] not in self.ally and self.is_free_oposite_double(position, cord[oposite[key]]):
-                    print("The first one "+key+" is free check the other")
+                    #print("The first one "+key+" is free check the other")
                     for pos in value:
                         if pos in self.ally:
                             print("The other is "+pos+"")
@@ -244,19 +244,30 @@ class Gomoku():
                 self.minimax()
 
     def minimax(self):
-        maxs = -10000
-        moves = self.check_board()
-        for each in moves:
-            s = self.max_ai(each)
-            print(s)
-            if s and s[0] > maxs:
-                maxs = s[0]
-                pos = s[1]
-        print(maxs, "max final score")
-        #self.min_ai(pos)
-        self.pos_player.append(pos)
+        """
+        call max for each position in list_pos to find the best option, max
+        simulate depht(3) numbers of turn before returning a value and a position
+        """
+        list_pos = self.check_board()
+        print(list_pos, "list_pos")
+        tmp = -666666 # need a negative reference value that can't be reached to start max
+        for x in list_pos:
+            value, coord = self.max_ai(list_pos, tmp, 3)
+            if value > tmp:
+                tmp = value
+                pos = coord
         self.time_clock.tick()
-        self.j1.last_pos = conv(pos[0], pos[1])
+        print(tmp, "score of move", pos, "coordonates of move")
+        self.aftermath(pos)
+
+    def aftermath(self, pos):
+        """
+        do all the necessary update of all the variable after minimax
+        bug : sometimes checkmate doesn't trigger   
+        """
+        r_coord = r_conv(pos[0], pos[1])
+        self.pos_player.append((r_coord[0], r_coord[1], 1))
+        self.j1.last_pos = pos
         self.coordinate[self.j1.last_pos] = 1
         self.map_players(self.j1.last_pos[0], self.j1.last_pos[1])
         self.check_hor_capture(self.j1.last_pos[0], self.j1.last_pos[1])
@@ -268,29 +279,109 @@ class Gomoku():
             self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
         self.change_player()
 
-
-    def max_ai(self, pos):
-        """return total value of pos (hor+ver+dia_l+dia_r)"""
-        total = [0]
+    def evaluate(self, pos, player):
+        """
+        for a coordinate(pos) return the value of the position
+         by adding or substracting score of every direction alignement + capture
+        """
+        total = 0
         r_pos = r_conv(pos[0], pos[1])
-        if self.can_place(r_pos[0], r_pos[1]):
+        if self.can_place(r_pos[0], r_pos[1]): #needed to check if position is valid
             for each in dir:
-                self.j1.align = self.check_align(pos, 1, each, self.j1.align)
-            val_list = list(self.j1.align.values())
+                player.align = self.check_align(pos, player.id, each, player.align)
+            val_list = list(player.align.values()) #get list of value of each direction formatted as (int, True/False, True/False)
             for each in val_list:
-                total[0] += score[alignement[tuple(each)]]
-            total.append((r_pos[0], r_pos[1], 1))
-            self.map_players(pos[0], pos[1])
+                if player.id == 1:
+                    total += score[alignement[tuple(each)]] #check score and alignement in variable.py
+                else:
+                    total -= score[alignement[tuple(each)]]
+            self.map_players(pos[0], pos[1]) #for checking capture
             self.check_hor_capture(pos[0], pos[1], False)
-            total[0] += self.j1.score
-            self.j1.score = 0
+            total += player.score
+            player.score = 0
             return(total)
-        return(list())
+        else:
+            return (None)
 
-    def min_ai(self, pos):
-        pass
+    def max_ai(self, list_pos, value, depth):
+        """
+        recursive function which end when value or depht is reached
+        max represent IA move , min the player, max seek the best move for IA
+        from a list of position obtained from check_board function (only heuristic for now)
+        It will evaluate each pos then call min to simulate the player move until
+        a move endgame has been reached or the depht is == 0
+        return a score and pos
+
+        TO_DO
+            *need some heuristics when min return a potential ending move (ex: four free)
+            *need heuristic to counter the min move
+            *for now max and min follow the same heurisitic but I think white
+            will needs to play capture to win
+            *need to implement alpha beta pruning
+            -bug: when min return an ending move max will return a position already occupied
+            -bug: sometimes max return a position not from the starting list
+            (may need to change list_pos to a dict)
+        """
+
+        max = -1000000
+        tmp_pos = None
+        #condition to end recursive
+        if value >= 7500:
+            return(value, self.j1.last_pos)
+        elif value <= -7500 and value != -666666:
+            return(value, self.j1.last_pos)
+        elif depth == 0:
+            return(value, self.j1.last_pos)
+
+        for pos in list_pos:
+            total = self.evaluate(pos, self.j1)
+            if total != None and total > value:
+                value = total
+                self.j1.last_pos = pos
+        self.coordinate[self.j1.last_pos] = 1 #needed to simulate the placement
+        tmp_pos = self.j1.last_pos
+        print(tmp_pos, "<= tmp", value, "<= score", "MAX")
+        value, pos = self.min_ai(self.check_board(), value, depth -1)
+        #end of recursion
+        if value > max:
+            max = value
+        self.coordinate[tmp_pos] = -1
+        return(max, tmp_pos)
+
+    def min_ai(self, list_pos, value, depth):
+        """see max_ai only difference is min seek minimum value
+        the difference of sign is in function evaluate
+        """
+        min = 1000000
+        tmp_pos = None
+        if value >= 7500:
+            return(value, self.j2.last_pos)
+        elif value <= -7500 and value != -666666:
+            return(value, self.j2.last_pos)
+        elif depth == 0:
+            return(value, self.j2.last_pos)
+
+        for pos in list_pos:
+            total = self.evaluate(pos, self.j2)
+            if total != None and total < value:
+                value = total
+                self.j2.last_pos = pos
+        self.coordinate[self.j2.last_pos] = 2
+        tmp_pos = self.j2.last_pos
+        print(tmp_pos, "<= tmp", value, "<= score", "MIN")
+        value, pos = self.max_ai(self.check_board(), value, depth - 1)
+        #end of recursion
+        if value < min:
+            min = value
+        self.coordinate[tmp_pos] = -1
+        return(min, tmp_pos)
 
     def check_board(self):
+        """
+        heuristic function wich evaluate the board with check_threat and return
+        a list of coordinate to evaluate them
+        use last alignement check from check_align
+        """
         pos = list()
         for dir, value in self.j2.align.items():
             if value == 5:
@@ -306,6 +397,12 @@ class Gomoku():
         return(listpos)
 
     def check_threat(self, dir, value, i, pos, last_pos):
+        """
+            for each direction add coordinates that are the end of each alignement for each player
+            ex : if ver = (3, True, True) in self.align with the coordinate (9,9)
+            check_threat will add (9,12), (9,11), (9,10), (9,8), (9,7), (9,6)
+            and remove at the end coordinate that are out of map or occupied
+        """
         if value[0] == i:
             while i > 0:
                 if dir == "hor":
@@ -328,6 +425,10 @@ class Gomoku():
         return(pos)
 
     def opening_books(self):
+        """
+        called for the first turns to gain time execution may need a check
+        when further heuristic are implemented
+        """
         if not self.pos_player:
             pos = r_conv(9,9)
             self.pos_player.append((pos[0], pos[1], 1))
@@ -350,7 +451,7 @@ class Gomoku():
         self.time_clock.tick()
 
     def check_align(self, coor, player, dir, n):
-        """return each alignement direction for current coordinate"""
+        """return each len of alignement for each direction for current coordinate"""
         n[dir] = [1]
         pn = [1,1]
         for x in range (1, 5):
@@ -359,6 +460,8 @@ class Gomoku():
                 n[dir][0] += 1
             if pn[1]:
                 n[dir][0] += 1
+        if n[dir][0] > 5:
+            n[dir][0] == 5
         return(n)
 
     def calc(self, n , dir, x, coor, pn, player):
@@ -489,16 +592,20 @@ class Gomoku():
                     self.capture(sup1, sup2, to_erase)
                 elif not real and pos != -1 and pos == self.current_player:
                     if self.current_player == 1 and self.j1.capture < 4:
-                        self.j1.score += 500
+                        self.j1.score += 1000
                     elif self.current_player == 1 and self.j1.capture == 4:
-                        self.j2.score += 10000
+                        self.j1.score += 10000
+                    elif self.current_player == 2 and self.j2.capture < 4:
+                        self.j2.score -= 1000
+                    elif self.current_player == 2 and self.j1.capture == 4:
+                        self.j2.score -= 10000
         for each in to_erase:
             self.pos_player.remove(each)
         del to_erase[:]
 
     def capture(self, pos1, pos2, to_erase):
         """
-        need a few change when class Player will be implemented
+        trigger a capture
         """
         newpos1 = [(i * 40 + 30)  for i in pos1]
         newpos2 = [(i * 40 + 30) for i in pos2]
@@ -593,7 +700,10 @@ class Gomoku():
             time.sleep(0.2)
 
     def restore(self, pos):
-        """restore captured pieces when undo"""
+        """
+        restore captured pieces when undo
+         *TODO restore doesn't work in ai_play since you can't undo during the AI turn
+        """
         i = 0
         if self.current_player == 2:
             for key, coor in self.j1.captured.items():

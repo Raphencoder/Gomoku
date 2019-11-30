@@ -148,29 +148,6 @@ class Gomoku():
             # print("Outside map return False")
             return False
 
-    def is_free_oposite_one(self, xy, coordonates):
-        # print("-- oposite --")
-        to_add_x = coordonates[1][0] - coordonates[0][0]
-        to_add_y = coordonates[1][1] - coordonates[0][1]
-        x = xy[0]
-        y = xy[1]
-        pos_x = x
-        pos_y = y
-        pos_x += to_add_x
-        pos_y += to_add_y
-        # print("check for this coordonates:", xy)
-        # print("toaddx, toadd_y:", to_add_x, to_add_y)
-        # print(pos_x, pos_y)
-        try:
-            if self.coordinate[pos_x, pos_y] == self.current_player:
-                # print("return True")
-                return True
-            else:
-                # print("return False")
-                return False
-        except KeyError:
-            # print("Outside map return False")
-            return False
 
     def is_free_oposite_double(self, xy, coordonates):
         # print("-- oposite --")

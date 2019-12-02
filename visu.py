@@ -2,8 +2,8 @@ import pygame
 import os
 import sys
 from menu import game_intro, text_objects, button, quit_game
-import random
-from variables import cord, index, new_rules, oposite, dir, alignement, score
+from variables import cord, index, new_rules, oposite, dir
+from ai_algo import ai_play, check_align
 import time
 
 
@@ -219,13 +219,13 @@ class Gomoku():
                         self.check_hor_capture(pos[0], pos[1])
                         if self.current_player == 1:
                             for each in dir:
-                                self.j1.align = self.check_align(pos, 1, each, self.j1.align)
+                                self.j1.align = check_align(self, pos, 1, each, self.j1.align)
                             if self.nb_turn >= 4:
                                 self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
                             self.j1.last_pos = pos
                         else:
                             for each in dir:
-                                self.j2.align = self.check_align(pos, 2, each, self.j2.align)
+                                self.j2.align = check_align(self, pos, 2, each, self.j2.align)
                             if self.nb_turn >= 4:
                                 self.checkmate(self.j1.check, self.j1.last_pos, 1, self.j1.align)
                             self.j2.last_pos = pos
@@ -236,270 +236,11 @@ class Gomoku():
                 pygame.quit()
                 quit()
 
-    def ai_play(self):
-        if not self.j1.win:
-            if self.nb_turn < 2:
-                self.opening_books()
-            else:
-                self.minimax()
-
-    def minimax(self):
-        """
-        call max for each position in list_pos to find the best option, max
-        simulate depht(3) numbers of turn before returning a value and a position
-        """
-        list_pos = self.check_board()
-        print(list_pos, "list_pos")
-        tmp = -666666 # need a negative reference value that can't be reached to start max
-        for x in list_pos:
-            value, coord = self.max_ai(list_pos, tmp, 3)
-            if value > tmp:
-                tmp = value
-                pos = coord
-        self.time_clock.tick()
-        print(tmp, "score of move", pos, "coordonates of move")
-        self.aftermath(pos)
-
-    def aftermath(self, pos):
-        """
-        do all the necessary update of all the variable after minimax
-        bug : sometimes checkmate doesn't trigger   
-        """
-        r_coord = r_conv(pos[0], pos[1])
-        self.pos_player.append((r_coord[0], r_coord[1], 1))
-        self.j1.last_pos = pos
-        self.coordinate[self.j1.last_pos] = 1
-        self.map_players(self.j1.last_pos[0], self.j1.last_pos[1])
-        self.check_hor_capture(self.j1.last_pos[0], self.j1.last_pos[1])
-        self.inc_turn()
-        for each in dir:
-            self.j1.align = self.check_align(self.j1.last_pos, 1, each, self.j1.align)
-        print(self.j1.align, self.j1.last_pos)
-        if self.nb_turn >= 4:
-            self.checkmate(self.j2.check, self.j2.last_pos, 2, self.j2.align)
-        self.change_player()
-
-    def evaluate(self, pos, player):
-        """
-        for a coordinate(pos) return the value of the position
-         by adding or substracting score of every direction alignement + capture
-        """
-        total = 0
-        r_pos = r_conv(pos[0], pos[1])
-        if self.can_place(r_pos[0], r_pos[1]): #needed to check if position is valid
-            for each in dir:
-                player.align = self.check_align(pos, player.id, each, player.align)
-            val_list = list(player.align.values()) #get list of value of each direction formatted as (int, True/False, True/False)
-            for each in val_list:
-                if player.id == 1:
-                    total += score[alignement[tuple(each)]] #check score and alignement in variable.py
-                else:
-                    total -= score[alignement[tuple(each)]]
-            self.map_players(pos[0], pos[1]) #for checking capture
-            self.check_hor_capture(pos[0], pos[1], False)
-            total += player.score
-            player.score = 0
-            return(total)
-        else:
-            return (None)
-
-    def max_ai(self, list_pos, value, depth):
-        """
-        recursive function which end when value or depht is reached
-        max represent IA move , min the player, max seek the best move for IA
-        from a list of position obtained from check_board function (only heuristic for now)
-        It will evaluate each pos then call min to simulate the player move until
-        a move endgame has been reached or the depht is == 0
-        return a score and pos
-
-        TO_DO
-            *need some heuristics when min return a potential ending move (ex: four free)
-            *need heuristic to counter the min move
-            *for now max and min follow the same heurisitic but I think white
-            will needs to play capture to win
-            *need to implement alpha beta pruning
-            -bug: when min return an ending move max will return a position already occupied
-            -bug: sometimes max return a position not from the starting list
-            (may need to change list_pos to a dict)
-        """
-
-        max = -1000000
-        tmp_pos = None
-        #condition to end recursive
-        if value >= 7500:
-            return(value, self.j1.last_pos)
-        elif value <= -7500 and value != -666666:
-            return(value, self.j1.last_pos)
-        elif depth == 0:
-            return(value, self.j1.last_pos)
-
-        for pos in list_pos:
-            total = self.evaluate(pos, self.j1)
-            if total != None and total > value:
-                value = total
-                self.j1.last_pos = pos
-        self.coordinate[self.j1.last_pos] = 1 #needed to simulate the placement
-        tmp_pos = self.j1.last_pos
-        print(tmp_pos, "<= tmp", value, "<= score", "MAX")
-        value, pos = self.min_ai(self.check_board(), value, depth -1)
-        #end of recursion
-        if value > max:
-            max = value
-        self.coordinate[tmp_pos] = -1
-        return(max, tmp_pos)
-
-    def min_ai(self, list_pos, value, depth):
-        """see max_ai only difference is min seek minimum value
-        the difference of sign is in function evaluate
-        """
-        min = 1000000
-        tmp_pos = None
-        if value >= 7500:
-            return(value, self.j2.last_pos)
-        elif value <= -7500 and value != -666666:
-            return(value, self.j2.last_pos)
-        elif depth == 0:
-            return(value, self.j2.last_pos)
-
-        for pos in list_pos:
-            total = self.evaluate(pos, self.j2)
-            if total != None and total < value:
-                value = total
-                self.j2.last_pos = pos
-        self.coordinate[self.j2.last_pos] = 2
-        tmp_pos = self.j2.last_pos
-        print(tmp_pos, "<= tmp", value, "<= score", "MIN")
-        value, pos = self.max_ai(self.check_board(), value, depth - 1)
-        #end of recursion
-        if value < min:
-            min = value
-        self.coordinate[tmp_pos] = -1
-        return(min, tmp_pos)
-
-    def check_board(self):
-        """
-        heuristic function wich evaluate the board with check_threat and return
-        a list of coordinate to evaluate them
-        use last alignement check from check_align
-        """
-        pos = list()
-        for dir, value in self.j2.align.items():
-            if value == 5:
-                continue
-            for i in range(4, 0, -1):
-                pos = self.check_threat(dir, value, i, pos, self.j2.last_pos)
-        for dir, value in self.j1.align.items():
-            if value == 5:
-                continue
-            for i in range(4, 0, -1):
-                pos = self.check_threat(dir, value, i, pos, self.j1.last_pos)
-        listpos = list(dict.fromkeys(pos))
-        return(listpos)
-
-    def check_threat(self, dir, value, i, pos, last_pos):
-        """
-            for each direction add coordinates that are the end of each alignement for each player
-            ex : if ver = (3, True, True) in self.align with the coordinate (9,9)
-            check_threat will add (9,12), (9,11), (9,10), (9,8), (9,7), (9,6)
-            and remove at the end coordinate that are out of map or occupied
-        """
-        if value[0] == i:
-            while i > 0:
-                if dir == "hor":
-                    pos.append((last_pos[0] + i , last_pos[1]))
-                    pos.append((last_pos[0] - i , last_pos[1]))
-                elif dir == "ver":
-                    pos.append((last_pos[0], last_pos[1] + i))
-                    pos.append((last_pos[0], last_pos[1] - i))
-                elif dir == "dia_r":
-                    pos.append((last_pos[0] + i , last_pos[1] - i))
-                    pos.append((last_pos[0] - i , last_pos[1] + i))
-                elif dir == "dia_l":
-                    pos.append((last_pos[0] + i , last_pos[1] + i))
-                    pos.append((last_pos[0] - i , last_pos[1] - i))
-                i -= 1
-        for each in self.coordinate:
-            for coor in pos:
-                if coor in self.coordinate.keys() and self.coordinate[coor] != -1:
-                    pos.remove(coor)
-        return(pos)
-
-    def opening_books(self):
-        """
-        called for the first turns to gain time execution may need a check
-        when further heuristic are implemented
-        """
-        if not self.pos_player:
-            pos = r_conv(9,9)
-            self.pos_player.append((pos[0], pos[1], 1))
-            self.coordinate[(9,9)] = 1
-            self.inc_turn()
-            self.change_player()
-        else:
-            x = random.randint(-1,1)
-            l_play = conv(self.pos_player[-1][0] + x, self.pos_player[-1][1] + x)
-            r_play = r_conv(l_play[0],l_play[1])
-            while not self.can_place(r_play[0], r_play[1]):
-                r_play = r_conv(l_play[0] + random.randint(-1,1), l_play[1] + random.randint(-1,1))
-            self.pos_player.append((r_play[0], r_play[1], 1))
-            print(self.pos_player)
-            l_play = conv(r_play[0], r_play[1])
-            self.j1.last_pos = l_play
-            self.coordinate[l_play] = 1
-            self.change_player()
-            self.inc_turn()
-        self.time_clock.tick()
-
-    def check_align(self, coor, player, dir, n):
-        """return each len of alignement for each direction for current coordinate"""
-        n[dir] = [1]
-        pn = [1,1]
-        for x in range (1, 5):
-            pn = self.calc(n, dir, x, coor, pn, player)
-            if pn[0]:
-                n[dir][0] += 1
-            if pn[1]:
-                n[dir][0] += 1
-        if n[dir][0] > 5:
-            n[dir][0] == 5
-        return(n)
-
-    def calc(self, n , dir, x, coor, pn, player):
-        """check each neighboor of coor for each direction"""
-        if dir == "hor":
-            coord = ((coor[0] + x, coor[1]), (coor[0] - x, coor[1]))
-        elif dir == "ver":
-            coord = ((coor[0], coor[1] + x), (coor[0], coor[1] - x))
-        elif dir == "dia_r":
-            coord = ((coor[0] +x , coor[1] -x), (coor[0] -x , coor[1] +x))
-        elif dir == "dia_l":
-            coord = ((coor[0] +x , coor[1] +x), (coor[0] -x , coor[1] -x))
-        pn = self.not_player(coord, pn, player, n[dir])
-        return(pn)
-
-    def not_player(self, coord, pn, player, ndir):
-        """check if coordinate neighboor aren't out of the map or the enemy pawn"""
-        pn = self.out_of_map(coord, pn, ndir)
-        for i in range(2):
-            if pn[i] and self.coordinate[coord[i]] == -1:
-                ndir.append(True)
-                pn[i] = 0
-            elif pn[i] and self.coordinate[coord[i]] != player:
-                ndir.append(False)
-                pn[i] = 0
-        return(pn)
-
-    def out_of_map(self, coor, pn, ndir):
-        for i in range(2):
-            if pn[i] and (coor[i] not in self.coordinate):
-                pn[i] = 0
-                ndir.append(False)
-        return(pn)
 
     def checkmate(self, check, pos, p, align):
         """trigger the end of the game if check not countered"""
         for each in dir:
-            align = self.check_align(pos, p, each, align)
+            align = check_align(self, pos, p, each, align)
         if check == 1:
             value = list(align.values())
             fullist = [item for sublist in value for item in sublist]
@@ -796,7 +537,7 @@ def start_game():
             if event.type == pygame.QUIT:
                 quit_game()
         if ai_mode and gomoku.current_player == 1:
-            gomoku.ai_play()
+            ai_play(gomoku)
         gomoku.check_event()
         gomoku.display_player()
         gomoku.fill_background(nb_square)

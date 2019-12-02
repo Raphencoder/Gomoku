@@ -117,8 +117,12 @@ class Gomoku():
                 else:
                     # print("return False")
                     return False
+            elif self.coordinate[pos_x, pos_y] == -1 and\
+                self.coordinate[pos_x + to_add_x, pos_y + to_add_y] == self.current_player and\
+                self.coordinate[pos_x + 2*to_add_x, pos_y + 2*to_add_y] == self.current_player and\
+                self.coordinate[pos_x + 3*to_add_x, pos_y + 3*to_add_y] == -1:
+                return True
             else:
-                # print("default return True")
                 return False
         except KeyError:
             # print("eror map return Falsee")

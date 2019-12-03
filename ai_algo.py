@@ -18,12 +18,15 @@ def minimax(gomoku):
     """
     list_pos = check_board(gomoku)
     print(list_pos, "list_pos")
+    nb = 0
     tmp = -666666 # need a negative reference value that can't be reached to start max
     for x in list_pos:
         value, coord = max_ai(gomoku, list_pos, tmp, 3)
         if value > tmp:
             tmp = value
             pos = coord
+        print(nb, "<= nb")
+        nb += 1
     gomoku.time_clock.tick()
     print(tmp, "score of move", pos, "coordonates of move")
     aftermath(gomoku, pos)
@@ -101,11 +104,11 @@ def max_ai(gomoku, list_pos, value, depth):
     elif depth == 0:
         return(value, gomoku.j1.last_pos)
 
-    for pos in list_pos:
-        total = evaluate(gomoku, pos, gomoku.j1)
+    for nb in list_pos:
+        total = evaluate(gomoku, nb, gomoku.j1)
         if total != None and total > value:
             value = total
-            gomoku.j1.last_pos = pos
+            gomoku.j1.last_pos = nb
     gomoku.coordinate[gomoku.j1.last_pos] = 1 #needed to simulate the placement
     tmp_pos = gomoku.j1.last_pos
     print(tmp_pos, "<= tmp", value, "<= score", "MAX")
@@ -113,6 +116,7 @@ def max_ai(gomoku, list_pos, value, depth):
     #end of recursion
     if value > max:
         max = value
+    #print(max, "return value of max_ai")
     gomoku.coordinate[tmp_pos] = -1
     return(max, tmp_pos)
 
@@ -141,6 +145,7 @@ def min_ai(gomoku, list_pos, value, depth):
     #end of recursion
     if value < min:
         min = value
+    #print(min, "return value of min_ai")
     gomoku.coordinate[tmp_pos] = -1
     return(min, tmp_pos)
 

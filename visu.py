@@ -184,7 +184,7 @@ class Gomoku():
                     #print("The first one "+key+" is free check the other")
                     for pos in value:
                         if pos in self.ally:
-                            print("The other is "+pos+"")
+                            #print("The other is "+pos+"")
                             if self.ally[pos] == 1 and self.is_free_one(position, cord[pos]) and \
                             oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_one(position, cord[oposite[pos]]):
                                 return False
@@ -196,7 +196,7 @@ class Gomoku():
                     #print("The first one "+key+" is free check the other")
                     for pos in value:
                         if pos in self.ally:
-                            print("The other is "+pos+"")
+                            #print("The other is "+pos+"")
                             if self.ally[pos] == 1 and self.is_free_one(position, cord[pos]) and \
                             oposite[pos] in self.ally and self.ally[oposite[pos]] == 1 and self.is_free_one(position, cord[oposite[pos]]):
                                 return False
@@ -333,11 +333,11 @@ class Gomoku():
                     self.capture(sup1, sup2, to_erase)
                 elif not real and pos != -1 and pos == self.current_player:
                     if self.current_player == 1 and self.j1.capture < 4:
-                        self.j1.score += 1000
+                        self.j1.score += 500
                     elif self.current_player == 1 and self.j1.capture == 4:
                         self.j1.score += 10000
                     elif self.current_player == 2 and self.j2.capture < 4:
-                        self.j2.score -= 1000
+                        self.j2.score -= 500
                     elif self.current_player == 2 and self.j1.capture == 4:
                         self.j2.score -= 10000
         for each in to_erase:

@@ -168,5 +168,5 @@ score = {
     "four_free" : 2000,
     "four_sided" : 1000,
     "four_block" : 150,
-    "five" : 7500,
+    "five" : 15000,
     }

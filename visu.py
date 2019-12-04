@@ -335,6 +335,7 @@ class Gomoku():
                 sup2 = [x + cord[elem][1][0], y + cord[elem][1][1]]
                 if real and pos != -1 and pos == self.current_player:
                     self.capture(sup1, sup2, to_erase)
+                """
                 elif not real and pos != -1 and pos == self.current_player:
                     if self.current_player == 1 and self.j1.capture < 4:
                         self.j1.score += 500
@@ -344,6 +345,7 @@ class Gomoku():
                         self.j2.score -= 500
                     elif self.current_player == 2 and self.j1.capture == 4:
                         self.j2.score -= 10000
+                """
         for each in to_erase:
             self.pos_player.remove(each)
         del to_erase[:]

@@ -524,7 +524,7 @@ class Player():
         self.check = 0
         self.last_pos = None
         self.win = 0
-        self.score = 0
+        self.score = [0,0,0]
 
 def start_game():
 

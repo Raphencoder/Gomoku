@@ -18,13 +18,15 @@ def minimax(gomoku):
     """
     list_pos = check_board(gomoku)
     print(list_pos, "list_pos")
-    defaut = -9000000
-    tmp = defaut
+    list_score = [-9000000, 9000000, -9000000]
+    tmp = -9000000
     tmp_pos = None
-    #gomoku.j1.score = -1000000
-    #gomoku.j2.score = 1000000
+    svg_j1, svg_j2 = gomoku.j1.last_pos, gomoku.j2.last_pos
+
     for x in list_pos:
-        value = max_ai(gomoku, [x], 1, [], defaut)
+        value = max_ai(gomoku, [x], 0, [], -9000000, list_score)
+        list_score = [-9000000, 9000000, -9000000]
+        gomoku.j1.last_pos, gomoku.j2.last_pos = svg_j1, svg_j2
         print(value, x, "value and potential move")
         if value > tmp:
             tmp = value
@@ -56,7 +58,7 @@ def aftermath(gomoku, pos):
         gomoku.checkmate(gomoku.j2.check, gomoku.j2.last_pos, 2, gomoku.j2.align)
     gomoku.change_player()
 
-def evaluate(gomoku, pos, player, depht):
+def evaluate(gomoku, pos, player, depth, list_score):
     """
     for a coordinate(pos) return the value of the position
      by adding or substracting score of every direction alignement + capture
@@ -80,24 +82,24 @@ def evaluate(gomoku, pos, player, depht):
         player.score = 0
         """
         if player.id == 1:
-            total += gomoku.j2.score
+            if depth != 0:
+                total += list_score[depth - 1]
             print(total, "total score of move (j1)", pos)
-            if total > gomoku.j1.score:
-                gomoku.j1.score = total # - depth * 10
+            if total > list_score[depth]:
+                list_score[depth] = total # - depth * 10
                 gomoku.j1.last_pos = pos
-            return(gomoku.j1.score)
+            return(list_score[depth])
         else:
-            total += gomoku.j1.score
+            total += list_score[depth - 1]
             print(total, "total score of move (j2)", pos)
-            if total < gomoku.j2.score:
-                gomoku.j2.score = total # - depht * 10
+            if total < list_score[depth]:
+                list_score[depth] = total # - depht * 10
                 gomoku.j2.last_pos = pos
-            return(gomoku.j2.score)
-        return(total)
+            return(list_score[depth])
     else:
         return (None)
 
-def max_ai(gomoku, pos, depth, to_reset, value):
+def max_ai(gomoku, pos, depth, to_reset, value, list_score):
     """
     recursive function which end when value or depht is reached
     max represent IA move , min the player, max seek the best move for IA
@@ -119,49 +121,61 @@ def max_ai(gomoku, pos, depth, to_reset, value):
 
     #condition to end recursive
     if value >= 10000:
+        for x in to_reset:
+            gomoku.coordinate[x] = -1
+        del to_reset[:]
         return(value)
-    elif value <= -10000 and value != -9000000 :
+    elif value <= -10000 and value != -9000000:
+        for x in to_reset:
+            gomoku.coordinate[x] = -1
+        del to_reset[:]
         return(value)
-    elif depth == 4:
+    elif depth == 3:
         for x in to_reset:
             gomoku.coordinate[x] = -1
         del to_reset[:]
         return(value)
 
     for nb in pos:
-        value = evaluate(gomoku, nb, gomoku.j1, depth)
+        value = evaluate(gomoku, nb, gomoku.j1, depth, list_score)
     print("*** play {} best possible move for j1(AI) with {} points *** #simulation".format(gomoku.j1.last_pos, value))
     gomoku.coordinate[gomoku.j1.last_pos] = 1
     to_reset.append(gomoku.j1.last_pos)
     list_pos = check_board(gomoku)
     print("///////     MIN TURN        //////")
-    value = min_ai(gomoku, list_pos, depth + 1, to_reset, value)
+    value = min_ai(gomoku, list_pos, depth + 1, to_reset, value, list_score)
     #end of recursion
     #print(max, "return value of max_ai")
     return(value)
 
-def min_ai(gomoku, pos, depth, to_reset, value):
+def min_ai(gomoku, pos, depth, to_reset, value, list_score):
     """see max_ai only difference is min seek minimum value
     the difference of sign is in function evaluate
     """
     if value >= 10000:
+        for x in to_reset:
+            gomoku.coordinate[x] = -1
+        del to_reset[:]
         return(value)
     elif value <= -10000 and value != -9000000:
+        for x in to_reset:
+            gomoku.coordinate[x] = -1
+        del to_reset[:]
         return(value)
-    elif depth == 4:
+    elif depth == 3:
         for x in to_reset:
             gomoku.coordinate[x] = -1
         del to_reset[:]
         return(value)
 
     for nb in pos:
-        value = evaluate(gomoku, nb, gomoku.j2, depth)
+        value = evaluate(gomoku, nb, gomoku.j2, depth, list_score)
     print("*** play on {} best possible move for j2 with {} points *** #simulation".format(gomoku.j2.last_pos, value))
     gomoku.coordinate[gomoku.j2.last_pos] = 2
     to_reset.append(gomoku.j2.last_pos)
     list_pos = check_board(gomoku)
     print("///////     MAX TURN        ///////")
-    value = max_ai(gomoku, list_pos, depth + 1, to_reset, value)
+    value = max_ai(gomoku, list_pos, depth + 1, to_reset, value, list_score)
     #end of recursion
 
     #print(min, "return value of min_ai")
@@ -252,7 +266,7 @@ def check_align(gomoku, coor, player, dir, n):
         if pn[1]:
             n[dir][0] += 1
     if n[dir][0] > 5:
-        n[dir][0] == 5
+        n[dir][0] = 5
     return(n)
 
 def calc(gomoku, n , dir, x, coor, pn, player):

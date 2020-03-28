@@ -543,10 +543,15 @@ def start_game():
             if event.type == pygame.QUIT:
                 quit_game()
         if ai_mode and gomoku.current_player == 1:
+            s = time.time()
+            # print("STARTING")
             ai_play(gomoku)
-        gomoku.check_event()
-        gomoku.display_player()
-        gomoku.fill_background(nb_square)
+            # print("------------------------DONE IN :", time.time() - s)
+
+        else:
+            gomoku.check_event()
+            gomoku.display_player()
+            gomoku.fill_background(nb_square)
     pygame.quit()
 
 start_game()

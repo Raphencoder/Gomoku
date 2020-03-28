@@ -17,7 +17,7 @@ def minimax(gomoku):
     simulate depht(3) numbers of turn before returning a value
     """
     list_pos = check_board(gomoku)
-    print(list_pos, "list_pos")
+    # print(list_pos, "list_pos")
     list_score = [-9000000, 9000000, -9000000]
     tmp = -9000000
     tmp_pos = None
@@ -27,16 +27,16 @@ def minimax(gomoku):
         value = max_ai(gomoku, [x], 0, [], -9000000, list_score)
         list_score = [-9000000, 9000000, -9000000]
         gomoku.j1.last_pos, gomoku.j2.last_pos = svg_j1, svg_j2
-        print(value, x, "value and potential move")
+        # print(value, x, "value and potential move")
         if value > tmp:
             tmp = value
             tmp_pos = x
-        print("END OF SIMULATION FOR {}".format(x))
+        # print("END OF SIMULATION FOR {}".format(x))
 
     #value = max_ai(gomoku, value, 3)
     coord = tmp_pos
     gomoku.time_clock.tick()
-    print(tmp, "score of move", coord, "coordonates of move")
+    # print(tmp, "score of move", coord, "coordonates of move")
     aftermath(gomoku, coord)
 
 def aftermath(gomoku, pos):
@@ -53,7 +53,7 @@ def aftermath(gomoku, pos):
     gomoku.inc_turn()
     for each in dir:
         gomoku.j1.align = check_align(gomoku, gomoku.j1.last_pos, 1, each, gomoku.j1.align)
-    print(gomoku.j1.align, gomoku.j1.last_pos)
+    # print(gomoku.j1.align, gomoku.j1.last_pos)
     if gomoku.nb_turn >= 4:
         gomoku.checkmate(gomoku.j2.check, gomoku.j2.last_pos, 2, gomoku.j2.align)
     gomoku.change_player()
@@ -84,14 +84,14 @@ def evaluate(gomoku, pos, player, depth, list_score):
         if player.id == 1:
             if depth != 0:
                 total += list_score[depth - 1]
-            print(total, "total score of move (j1)", pos)
+            # print(total, "total score of move (j1)", pos)
             if total > list_score[depth]:
                 list_score[depth] = total # - depth * 10
                 gomoku.j1.last_pos = pos
             return(list_score[depth])
         else:
             total += list_score[depth - 1]
-            print(total, "total score of move (j2)", pos)
+            # print(total, "total score of move (j2)", pos)
             if total < list_score[depth]:
                 list_score[depth] = total # - depht * 10
                 gomoku.j2.last_pos = pos
@@ -138,14 +138,14 @@ def max_ai(gomoku, pos, depth, to_reset, value, list_score):
 
     for nb in pos:
         value = evaluate(gomoku, nb, gomoku.j1, depth, list_score)
-    print("*** play {} best possible move for j1(AI) with {} points *** #simulation".format(gomoku.j1.last_pos, value))
+    # print("*** play {} best possible move for j1(AI) with {} points *** #simulation".format(gomoku.j1.last_pos, value))
     gomoku.coordinate[gomoku.j1.last_pos] = 1
     to_reset.append(gomoku.j1.last_pos)
     list_pos = check_board(gomoku)
-    print("///////     MIN TURN        //////")
+    # print("///////     MIN TURN        //////")
     value = min_ai(gomoku, list_pos, depth + 1, to_reset, value, list_score)
     #end of recursion
-    #print(max, "return value of max_ai")
+    # print(max, "return value of max_ai")
     return(value)
 
 def min_ai(gomoku, pos, depth, to_reset, value, list_score):
@@ -170,15 +170,15 @@ def min_ai(gomoku, pos, depth, to_reset, value, list_score):
 
     for nb in pos:
         value = evaluate(gomoku, nb, gomoku.j2, depth, list_score)
-    print("*** play on {} best possible move for j2 with {} points *** #simulation".format(gomoku.j2.last_pos, value))
+    # print("*** play on {} best possible move for j2 with {} points *** #simulation".format(gomoku.j2.last_pos, value))
     gomoku.coordinate[gomoku.j2.last_pos] = 2
     to_reset.append(gomoku.j2.last_pos)
     list_pos = check_board(gomoku)
-    print("///////     MAX TURN        ///////")
+    # print("///////     MAX TURN        ///////")
     value = max_ai(gomoku, list_pos, depth + 1, to_reset, value, list_score)
     #end of recursion
 
-    #print(min, "return value of min_ai")
+    # print(min, "return value of min_ai")
     return(value)
 
 def check_board(gomoku):
@@ -247,7 +247,7 @@ def opening_books(gomoku):
         while not gomoku.can_place(r_play[0], r_play[1]):
             r_play = r_conv(l_play[0] + random.randint(-1,1), l_play[1] + random.randint(-1,1))
         gomoku.pos_player.append((r_play[0], r_play[1], 1))
-        print(gomoku.pos_player)
+        # print(gomoku.pos_player)
         l_play = conv(r_play[0], r_play[1])
         gomoku.j1.last_pos = l_play
         gomoku.coordinate[l_play] = 1
